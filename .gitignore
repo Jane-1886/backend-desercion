@@ -1,0 +1,11 @@
+
+# Evitar subir dependencias
+node_modules/
+
+# Evitar subir variables de entorno
+.env
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+git rm -r --cached node_modules .env

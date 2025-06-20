@@ -1,5 +1,6 @@
 
-import db from '../src/config/db.js';
+import db from '../config/db.js';
+
 
 export const getAllAprendices = async () => {
   const [rows] = await db.query('SELECT * FROM Aprendices');

@@ -1,33 +1,39 @@
 
+// Importamos Express y el middleware
 import express from 'express';
+import verificarToken from '../middlewares/authMiddleware.js';
+
+// Importamos los controladores de aprendices
 import {
   obtenerAprendices,
-  crearAprendiz,
   obtenerAprendizPorId,
+  crearAprendiz,
   actualizarAprendiz,
   eliminarAprendiz
 } from '../controllers/aprendiz.controller.js';
 
-
-
+// Inicializamos el router
 const router = express.Router();
 
-// Consultar todos los aprendices
-router.get('/', obtenerAprendices);
+/**
+ * Rutas protegidas para el CRUD de 'Aprendices'
+ * Todas requieren un token válido en el header Authorization
+ */
 
-// Consultar uno por ID
-router.get('/:id', obtenerAprendizPorId);
+// Obtener todos los aprendices
+router.get('/', verificarToken, obtenerAprendices);
 
-// Crear aprendiz
-router.post('/', crearAprendiz);
+// Obtener aprendiz por ID
+router.get('/:id', verificarToken, obtenerAprendizPorId);
 
-// Actualizar aprendiz
-router.put('/:id', actualizarAprendiz);
+// Crear nuevo aprendiz
+router.post('/', verificarToken, crearAprendiz);
+
+// Actualizar aprendiz existente
+router.put('/:id', verificarToken, actualizarAprendiz);
 
 // Eliminar aprendiz
-router.delete('/:id', eliminarAprendiz);
+router.delete('/:id', verificarToken, eliminarAprendiz);
 
-
-
+// Exportamos el router
 export default router;
-
