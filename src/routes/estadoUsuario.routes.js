@@ -6,14 +6,20 @@ import {
   obtenerEstadoPorId,
   crearEstadoUsuario,
   actualizarEstadoUsuario,
-  eliminarEstadoUsuario
+  eliminarEstadoUsuario,
+  cambiarEstadoUsuario ,
 } from '../controllers/estadoUsuario.controller.js';
 
 const router = express.Router();
 
+
+
 /**
  * Rutas para el CRUD de 'Activar_Desactivar_Usuarios'
+ * 
  */
+// PATCH /api/usuarios/estado/5
+router.patch('/:id', cambiarEstadoUsuario);
 
 // GET - Todos los estados
 router.get('/', obtenerEstadosUsuarios);

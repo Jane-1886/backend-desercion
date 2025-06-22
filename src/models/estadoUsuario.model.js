@@ -47,4 +47,5 @@ class EstadoUsuario {
   }
 }
 
+
 export default EstadoUsuario;

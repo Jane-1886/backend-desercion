@@ -73,3 +73,32 @@ export const eliminarEstadoFicha = async (req, res) => {
   }
 };
 
+
+/**
+ * Cambia el estado de una ficha (Activo ↔ Inactivo)
+ */
+export const cambiarEstadoFicha = async (req, res) => {
+  const idFicha = req.params.id;
+  const { estado } = req.body;
+
+  // Validación del estado permitido
+  if (!['Activo', 'Inactivo'].includes(estado)) {
+    return res.status(400).json({ mensaje: 'Estado no válido. Usa "Activo" o "Inactivo".' });
+  }
+
+  try {
+    const resultado = await EstadoFicha.actualizar(idFicha, estado);
+
+    if (resultado > 0) {
+      res.status(200).json({ mensaje: `Ficha ${idFicha} actualizada a estado: ${estado}.` });
+    } else {
+      res.status(404).json({ mensaje: 'Ficha no encontrada o sin cambios.' });
+    }
+
+  } catch (error) {
+    console.error('Error al cambiar estado de ficha:', error);
+    res.status(500).json({ mensaje: 'Error interno del servidor.' });
+  }
+};
+
+

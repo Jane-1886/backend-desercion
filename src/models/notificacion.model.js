@@ -1,7 +1,6 @@
 
 // Importamos la conexión a la base de datos
 import db from '../config/db.js';
-
 /**
  * Modelo para la tabla 'Notificaciones'
  * Maneja las solicitudes de tipo administrativo que se registran en el sistema.

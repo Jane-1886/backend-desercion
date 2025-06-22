@@ -6,7 +6,9 @@ import {
   obtenerNotificacionPorId,
   crearNotificacion,
   actualizarNotificacion,
-  eliminarNotificacion
+  eliminarNotificacion,
+  registrarNotificacion,
+ listarNotificaciones ,
 } from '../controllers/notificacion.controller.js';
 
 const router = express.Router();
@@ -29,5 +31,11 @@ router.put('/:id', actualizarNotificacion);
 
 // DELETE - Eliminar notificación
 router.delete('/:id', eliminarNotificacion);
+
+// Ruta POST para crear notificación
+router.post('/', registrarNotificacion);
+
+// Ruta GET para listar notificaciones
+router.get('/', listarNotificaciones);
 
 export default router;

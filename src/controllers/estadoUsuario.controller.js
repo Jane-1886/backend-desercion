@@ -72,3 +72,33 @@ export const eliminarEstadoUsuario = async (req, res) => {
     res.status(500).json({ mensaje: 'Error al eliminar estado', error });
   }
 };
+
+
+/**
+ * Cambia el estado de un usuario (Activo ↔ Inactivo)
+ */
+export const cambiarEstadoUsuario = async (req, res) => {
+  const idUsuario = req.params.id;
+  const { estado } = req.body;
+
+  // Validar que el estado solo sea Activo o Inactivo
+  if (!['Activo', 'Inactivo'].includes(estado)) {
+    return res.status(400).json({ mensaje: 'Estado no válido. Usa "Activo" o "Inactivo".' });
+  }
+
+  try {
+    // Intentamos actualizar el estado
+    const resultado = await EstadoUsuario.actualizar(idUsuario, estado);
+
+    if (resultado > 0) {
+      res.status(200).json({ mensaje: `Estado del usuario ${idUsuario} actualizado a ${estado}.` });
+    } else {
+      res.status(404).json({ mensaje: 'Usuario no encontrado o sin cambios.' });
+    }
+
+  } catch (error) {
+    console.error('Error al cambiar estado del usuario:', error);
+    res.status(500).json({ mensaje: 'Error interno del servidor.' });
+  }
+};
+

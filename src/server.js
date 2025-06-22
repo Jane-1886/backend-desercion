@@ -1,8 +1,24 @@
+
+// Importaciones principales
 import express from 'express';
 import dotenv from 'dotenv';
+import cors from 'cors';
 import db from './config/db.js';
 
+// Cargar variables de entorno
+dotenv.config();
+console.log('📌 Iniciando servidor...');
+
+// Inicializar app
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Middlewares globales
+app.use(cors()); // Permitir solicitudes desde el frontend
+app.use(express.json()); // Permitir recibir JSON
+
 // Importación de rutas
+import authRoutes from './routes/auth.routes.js';
 import usuarioRoutes from './routes/usuario.routes.js';
 import intervencionRoutes from './routes/intervencion.routes.js';
 import alertaRoutes from './routes/alerta.routes.js';
@@ -12,40 +28,29 @@ import notificacionRoutes from './routes/notificacion.routes.js';
 import estadoUsuarioRoutes from './routes/estadoUsuario.routes.js';
 import estadoFichaRoutes from './routes/estadoFicha.routes.js';
 import fichaRoutes from './routes/ficha.routes.js';
-import authRoutes from './routes/auth.routes.js';
-import aprendizRoutes from './routes/aprendiz.routes.js'; // ✅ Asegúrate de tener esto
+import aprendizRoutes from './routes/aprendiz.routes.js';
 
-dotenv.config();
-console.log('📌 Iniciando servidor...');
-
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-app.use(express.json());
-
-import cors from 'cors';
-app.use(cors());
-
-
-// Rutas
+// Registrar rutas con sus prefijos
 app.use('/api/auth', authRoutes);
+app.use('/api/usuarios', usuarioRoutes);
+app.use('/api/usuarios/estado', estadoUsuarioRoutes);
 app.use('/api/fichas', fichaRoutes);
-app.use('/api/estados-fichas', estadoFichaRoutes);
-app.use('/api/estados-usuarios', estadoUsuarioRoutes);
+app.use('/api/fichas/estado', estadoFichaRoutes);
+app.use('/api/estados-fichas', estadoFichaRoutes); // Opcional: puedes eliminar si no se usa
+app.use('/api/estados-usuarios', estadoUsuarioRoutes); // Opcional: puedes eliminar si no se usa
 app.use('/api/notificaciones', notificacionRoutes);
 app.use('/api/planes', planSeguimientoRoutes);
 app.use('/api/asistencias', asistenciaRoutes);
 app.use('/api/alertas', alertaRoutes);
 app.use('/api/intervenciones', intervencionRoutes);
-app.use('/api/usuarios', usuarioRoutes);
-app.use('/api/aprendices', aprendizRoutes); // ✅ Esta es la que faltaba
+app.use('/api/aprendices', aprendizRoutes);
 
-// Ruta de prueba
+// Ruta raíz de prueba
 app.get('/', (req, res) => {
   res.send('✅ ¡Hola Janeth! Tu backend está funcionando 🎉');
 });
 
-// Probar conexión con la base de datos
+// Verificar conexión a la base de datos
 const probarConexion = async () => {
   try {
     await db.getConnection();
@@ -57,7 +62,7 @@ const probarConexion = async () => {
 
 probarConexion();
 
+// Iniciar servidor
 app.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
 });
-

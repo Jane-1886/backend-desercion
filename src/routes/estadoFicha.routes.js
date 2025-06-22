@@ -6,7 +6,8 @@ import {
   obtenerEstadoFichaPorId,
   crearEstadoFicha,
   actualizarEstadoFicha,
-  eliminarEstadoFicha
+  eliminarEstadoFicha,
+  cambiarEstadoFicha 
 } from '../controllers/estadoFicha.controller.js';
 
 const router = express.Router();
@@ -29,5 +30,9 @@ router.put('/:id', actualizarEstadoFicha);
 
 // DELETE - Eliminar estado
 router.delete('/:id', eliminarEstadoFicha);
+
+//Patch cambiar el estado de la ficha activo-inactivo
+router.patch('/:id', cambiarEstadoFicha);
+
 
 export default router;
