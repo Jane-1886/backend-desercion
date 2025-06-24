@@ -1,11 +1,11 @@
-// Importar mysql2 para conectarse a la base de datos
+
 import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
 
-// Cargar variables de entorno (.env)
+// Cargar variables de entorno
 dotenv.config();
 
-// Crear un pool de conexión a MySQL
+// Crear pool de conexión
 const db = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,

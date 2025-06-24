@@ -29,6 +29,9 @@ import estadoUsuarioRoutes from './routes/estadoUsuario.routes.js';
 import estadoFichaRoutes from './routes/estadoFicha.routes.js';
 import fichaRoutes from './routes/ficha.routes.js';
 import aprendizRoutes from './routes/aprendiz.routes.js';
+import informeRoutes from './routes/informe.routes.js';
+
+
 
 // Registrar rutas con sus prefijos
 app.use('/api/auth', authRoutes);
@@ -44,6 +47,10 @@ app.use('/api/asistencias', asistenciaRoutes);
 app.use('/api/alertas', alertaRoutes);
 app.use('/api/intervenciones', intervencionRoutes);
 app.use('/api/aprendices', aprendizRoutes);
+app.use('/api/intervenciones', intervencionRoutes);
+app.use('/api/aprendices', aprendizRoutes);
+app.use('/api/informes', informeRoutes); // 👈 esta es la nueva
+
 
 // Ruta raíz de prueba
 app.get('/', (req, res) => {

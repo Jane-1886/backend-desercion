@@ -1,65 +1,81 @@
 
 import {
   getAllAprendices,
-  insertAprendiz,
   getAprendizById,
+  insertAprendiz,
   updateAprendiz,
   deleteAprendiz
 } from '../models/aprendiz.model.js';
 
+/**
+ * 📄 Obtener todos los aprendices
+ */
 export const obtenerAprendices = async (req, res) => {
   try {
     const aprendices = await getAllAprendices();
     res.json(aprendices);
   } catch (error) {
-    console.error('❌ Error al obtener aprendices:', error.message);
-    res.status(500).json({ mensaje: 'Error del servidor' });
+    res.status(500).json({ mensaje: 'Error al obtener los aprendices', error });
   }
 };
-export const crearAprendiz = async (req, res) => {
-  try {
-    const { Nombre, Apellido, Estado } = req.body;
-    await insertAprendiz(Nombre, Apellido, Estado);
-    res.status(201).json({ mensaje: 'Aprendiz creado exitosamente' });
-  } catch (error) {
-    console.error('❌ Error al crear aprendiz:', error.message);
-    res.status(500).json({ mensaje: 'Error al insertar el aprendiz' });
-  }
-};
+
+/**
+ * 🔍 Obtener un aprendiz por ID
+ * @param {Object} req - Petición HTTP
+ * @param {Object} res - Respuesta HTTP
+ */
 export const obtenerAprendizPorId = async (req, res) => {
+  const { id } = req.params;
   try {
-    const { id } = req.params;
     const aprendiz = await getAprendizById(id);
     if (!aprendiz) {
       return res.status(404).json({ mensaje: 'Aprendiz no encontrado' });
     }
     res.json(aprendiz);
   } catch (error) {
-    console.error('❌ Error al obtener aprendiz:', error.message);
-    res.status(500).json({ mensaje: 'Error del servidor' });
+    res.status(500).json({ mensaje: 'Error al buscar el aprendiz', error });
   }
 };
 
-export const actualizarAprendiz = async (req, res) => {
+/**
+ * ➕ Crear un nuevo aprendiz
+ * @param {Object} req.body - Debe contener Nombre, Apellido y Estado
+ */
+export const crearAprendiz = async (req, res) => {
+  const { Nombre, Apellido, Estado } = req.body;
   try {
-    const { id } = req.params;
-    const { Nombre, Apellido, Estado } = req.body;
+    const nuevoId = await insertAprendiz(Nombre, Apellido, Estado);
+    res.status(201).json({ mensaje: 'Aprendiz creado', id: nuevoId });
+  } catch (error) {
+    res.status(500).json({ mensaje: 'Error al crear el aprendiz', error });
+  }
+};
+
+/**
+ * ✏️ Actualizar aprendiz por ID
+ * @param {Object} req - Contiene ID en params y nuevos datos en body
+ */
+export const actualizarAprendiz = async (req, res) => {
+  const { id } = req.params;
+  const { Nombre, Apellido, Estado } = req.body;
+  try {
     await updateAprendiz(id, Nombre, Apellido, Estado);
     res.json({ mensaje: 'Aprendiz actualizado correctamente' });
   } catch (error) {
-    console.error('❌ Error al actualizar aprendiz:', error.message);
-    res.status(500).json({ mensaje: 'Error del servidor' });
+    res.status(500).json({ mensaje: 'Error al actualizar el aprendiz', error });
   }
 };
 
+/**
+ * ❌ Eliminar aprendiz por ID
+ * @param {Object} req - Contiene ID en params
+ */
 export const eliminarAprendiz = async (req, res) => {
+  const { id } = req.params;
   try {
-    const { id } = req.params;
     await deleteAprendiz(id);
     res.json({ mensaje: 'Aprendiz eliminado correctamente' });
   } catch (error) {
-    console.error('❌ Error al eliminar aprendiz:', error.message);
-    res.status(500).json({ mensaje: 'Error del servidor' });
+    res.status(500).json({ mensaje: 'Error al eliminar el aprendiz', error });
   }
 };
-
