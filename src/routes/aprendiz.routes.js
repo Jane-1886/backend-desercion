@@ -1,9 +1,5 @@
 
-// Importamos Express y el middleware
 import express from 'express';
-import verificarToken from '../middlewares/authMiddleware.js';
-
-// Importamos los controladores de aprendices
 import {
   obtenerAprendices,
   obtenerAprendizPorId,
@@ -12,28 +8,50 @@ import {
   eliminarAprendiz
 } from '../controllers/aprendiz.controller.js';
 
-// Inicializamos el router
 const router = express.Router();
 
 /**
- * Rutas protegidas para el CRUD de 'Aprendices'
- * Todas requieren un token válido en el header Authorization
+ * 📄 Obtener todos los aprendices
+ * @route GET /api/aprendices
+ * @description Retorna una lista de todos los aprendices registrados
  */
+router.get('/', obtenerAprendices);
 
-// Obtener todos los aprendices
-router.get('/', verificarToken, obtenerAprendices);
+/**
+ * 🔍 Obtener aprendiz por ID
+ * @route GET /api/aprendices/:id
+ * @param {number} id - ID del aprendiz a consultar
+ * @description Busca un aprendiz específico por su ID
+ */
+router.get('/:id', obtenerAprendizPorId);
 
-// Obtener aprendiz por ID
-router.get('/:id', verificarToken, obtenerAprendizPorId);
+/**
+ * ➕ Crear nuevo aprendiz
+ * @route POST /api/aprendices
+ * @body {string} Nombre - Nombre del aprendiz
+ * @body {string} Apellido - Apellido del aprendiz
+ * @body {string} Estado - Estado del aprendiz (Activo/Inactivo)
+ * @description Crea un nuevo registro de aprendiz
+ */
+router.post('/', crearAprendiz);
 
-// Crear nuevo aprendiz
-router.post('/', verificarToken, crearAprendiz);
+/**
+ * ✏️ Actualizar aprendiz
+ * @route PUT /api/aprendices/:id
+ * @param {number} id - ID del aprendiz a actualizar
+ * @body {string} Nombre - Nombre actualizado
+ * @body {string} Apellido - Apellido actualizado
+ * @body {string} Estado - Estado actualizado
+ * @description Actualiza la información de un aprendiz existente
+ */
+router.put('/:id', actualizarAprendiz);
 
-// Actualizar aprendiz existente
-router.put('/:id', verificarToken, actualizarAprendiz);
+/**
+ * ❌ Eliminar aprendiz
+ * @route DELETE /api/aprendices/:id
+ * @param {number} id - ID del aprendiz a eliminar
+ * @description Elimina un aprendiz del sistema
+ */
+router.delete('/:id', eliminarAprendiz);
 
-// Eliminar aprendiz
-router.delete('/:id', verificarToken, eliminarAprendiz);
-
-// Exportamos el router
 export default router;

@@ -12,22 +12,28 @@ import {
 const router = express.Router();
 
 /**
- * Rutas para el CRUD de 'Fichas_de_Formacion'
+ * 📚 Rutas para el CRUD de 'Fichas_de_Formacion'
+ * Base: /api/fichas
  */
 
-// GET - Todas las fichas
+// ✅ Obtener todas las fichas
+// GET /api/fichas
 router.get('/', obtenerFichas);
 
-// GET - Ficha por ID
+// 🔍 Obtener ficha por ID
+// GET /api/fichas/:id
 router.get('/:id', obtenerFichaPorId);
 
-// POST - Crear ficha
+// ➕ Crear ficha nueva
+// POST /api/fichas
 router.post('/', crearFicha);
 
-// PUT - Actualizar ficha
+// ✏️ Actualizar ficha existente
+// PUT /api/fichas/:id
 router.put('/:id', actualizarFicha);
 
-// DELETE - Eliminar ficha
+// ❌ Eliminar ficha
+// DELETE /api/fichas/:id
 router.delete('/:id', eliminarFicha);
 
 export default router;

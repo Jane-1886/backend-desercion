@@ -3,10 +3,13 @@
 import Ficha from '../models/ficha.model.js';
 
 /**
- * Controlador para manejar el CRUD de la tabla 'Fichas_de_Formacion'
+ * 🎓 Controlador para manejar el CRUD de la tabla 'Fichas_de_Formacion'
  */
 
-// Obtener todas las fichas
+/**
+ * 📄 Obtener todas las fichas
+ * @route GET /api/fichas
+ */
 export const obtenerFichas = async (req, res) => {
   try {
     const datos = await Ficha.obtenerTodas();
@@ -16,7 +19,11 @@ export const obtenerFichas = async (req, res) => {
   }
 };
 
-// Obtener ficha por ID
+/**
+ * 🔍 Obtener ficha por ID
+ * @route GET /api/fichas/:id
+ * @param {number} id - ID de la ficha a consultar
+ */
 export const obtenerFichaPorId = async (req, res) => {
   const { id } = req.params;
   try {
@@ -31,7 +38,17 @@ export const obtenerFichaPorId = async (req, res) => {
   }
 };
 
-// Crear ficha
+/**
+ * ➕ Crear ficha
+ * @route POST /api/fichas
+ * @body {string} nombreFicha
+ * @body {string} descripcion
+ * @body {string} tipoPrograma
+ * @body {string} fechaInicio
+ * @body {string} fechaFin
+ * @body {string} estado
+ * @body {number} idAprendiz
+ */
 export const crearFicha = async (req, res) => {
   const { nombreFicha, descripcion, tipoPrograma, fechaInicio, fechaFin, estado, idAprendiz } = req.body;
   try {
@@ -42,7 +59,11 @@ export const crearFicha = async (req, res) => {
   }
 };
 
-// Actualizar ficha
+/**
+ * ✏️ Actualizar ficha
+ * @route PUT /api/fichas/:id
+ * @param {number} id - ID de la ficha a actualizar
+ */
 export const actualizarFicha = async (req, res) => {
   const { id } = req.params;
   const { nombreFicha, descripcion, tipoPrograma, fechaInicio, fechaFin, estado, idAprendiz } = req.body;
@@ -58,7 +79,11 @@ export const actualizarFicha = async (req, res) => {
   }
 };
 
-// Eliminar ficha
+/**
+ * ❌ Eliminar ficha
+ * @route DELETE /api/fichas/:id
+ * @param {number} id - ID de la ficha a eliminar
+ */
 export const eliminarFicha = async (req, res) => {
   const { id } = req.params;
   try {
