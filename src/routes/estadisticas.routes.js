@@ -4,7 +4,8 @@ import {
   estadisticaAlertasPorMes,
   estadisticaTotalAprendices,
   estadisticaEstadoFichas,
-  estadisticaTopInasistencias
+  estadisticaTopInasistencias,
+  estadisticaResumenGeneral
 } from '../controllers/estadisticas.controller.js';
 
 const router = express.Router();
@@ -23,5 +24,8 @@ router.get('/estado-fichas', estadisticaEstadoFichas);
 
 // 🔹 Ruta: Top 3 aprendices con más inasistencias
 router.get('/top-inasistencias', estadisticaTopInasistencias);
+
+// 🔹 Ruta: Resumen general
+router.get('/resumen', estadisticaResumenGeneral);
 
 export default router;
