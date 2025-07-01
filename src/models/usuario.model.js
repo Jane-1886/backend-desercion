@@ -13,22 +13,23 @@ class Usuario {
     return filas[0];
   }
 
-  static async crear({ nombre, contrasena, idRol, email }) {
+  // ✅ Recibe directamente los campos como vienen del controlador
+  static async crear({ Nombre_Usuario, Contraseña, ID_Rol, Email }) {
     const sql = `
       INSERT INTO Usuarios (Nombre_Usuario, Contraseña, ID_Rol, Email)
       VALUES (?, ?, ?, ?)
     `;
-    const [resultado] = await db.query(sql, [nombre, contrasena, idRol, email]);
+    const [resultado] = await db.query(sql, [Nombre_Usuario, Contraseña, ID_Rol, Email]);
     return resultado.insertId;
   }
 
-  static async actualizar(id, { nombre, contrasena, idRol, email }) {
+  static async actualizar(id, { Nombre_Usuario, Contraseña, ID_Rol, Email }) {
     const sql = `
       UPDATE Usuarios
       SET Nombre_Usuario = ?, Contraseña = ?, ID_Rol = ?, Email = ?
       WHERE ID_Usuario = ?
     `;
-    const [resultado] = await db.query(sql, [nombre, contrasena, idRol, email, id]);
+    const [resultado] = await db.query(sql, [Nombre_Usuario, Contraseña, ID_Rol, Email, id]);
     return resultado.affectedRows;
   }
 

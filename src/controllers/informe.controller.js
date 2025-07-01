@@ -37,7 +37,8 @@ export const generarInformePDF = async (req, res) => {
     const doc = new PDFDocument({ margin: 50 });
     const fileName = `informe-estadisticas-${Date.now()}.pdf`;
 
-    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+    res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
+
     res.setHeader('Content-Type', 'application/pdf');
     doc.pipe(res);
 
@@ -115,6 +116,15 @@ export const generarInformePorFicha = async (req, res) => {
       WHERE ap.ID_Ficha = ?
     `, [fichaId]);
 
+    const [alertasPorAprendiz] = await db.query(`
+      SELECT ap.ID_Aprendiz, ap.Nombre, ap.Apellido, COUNT(*) AS cantidad_alertas
+      FROM alertas a
+      JOIN aprendices ap ON a.ID_Aprendiz = ap.ID_Aprendiz
+      WHERE ap.ID_Ficha = ?
+      GROUP BY ap.ID_Aprendiz
+      ORDER BY cantidad_alertas DESC
+    `, [fichaId]);
+
     const [inasistencias] = await db.query(`
       SELECT ap.ID_Aprendiz, ap.Nombre, ap.Apellido, asi.*
       FROM asistencia asi
@@ -149,7 +159,8 @@ export const generarInformePorFicha = async (req, res) => {
     const doc = new PDFDocument({ margin: 50 });
     const fileName = `informe-ficha-${fichaId}.pdf`;
 
-    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+    res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
+
     res.setHeader('Content-Type', 'application/pdf');
     doc.pipe(res);
 
@@ -188,5 +199,120 @@ export const generarInformePorFicha = async (req, res) => {
   } catch (error) {
     console.error('❌ Error al generar informe por ficha:', error.message);
     res.status(500).json({ mensaje: 'Error al generar informe por ficha', error });
+  }
+};
+export const generarInformePorAprendiz = async (req, res) => {
+  const idAprendiz = req.params.id;
+
+  try {
+    // 1. Obtener datos básicos del aprendiz y su ficha
+    const [[aprendiz]] = await db.query(`
+      SELECT ap.Nombre, ap.Apellido, f.Nombre_Ficha, f.ID_Ficha
+      FROM aprendices ap
+      JOIN fichas_de_formacion f ON ap.ID_Ficha = f.ID_Ficha
+      WHERE ap.ID_Aprendiz = ?
+    `, [idAprendiz]);
+
+    if (!aprendiz) {
+      return res.status(404).json({ mensaje: 'Aprendiz no encontrado' });
+    }
+
+    // 2. Obtener asistencia
+    const [asistencias] = await db.query(`
+      SELECT Lunes, Martes, Miércoles, Jueves, Viernes
+      FROM asistencia
+      WHERE ID_Aprendiz = ?
+    `, [idAprendiz]);
+
+    // 3. Obtener alertas
+    const [alertas] = await db.query(`
+      SELECT DATE(Fecha_Alerta) AS fecha, Estado
+      FROM alertas
+      WHERE ID_Aprendiz = ?
+    `, [idAprendiz]);
+
+    // 4. Obtener intervenciones
+    const [intervenciones] = await db.query(`
+      SELECT Tipo_Intervencion, Fecha_Intervencion, Resultado
+      FROM intervenciones
+      WHERE ID_Aprendiz = ?
+    `, [idAprendiz]);
+
+    // 5. Obtener plan de seguimiento
+    const [planes] = await db.query(`
+      SELECT Tipo_Seguimiento, Fecha_Inicio, Fecha_Fin, Estado, Descripcion
+      FROM planes_seguimiento
+      WHERE ID_Aprendiz = ?
+      ORDER BY Fecha_Inicio DESC LIMIT 1
+    `, [idAprendiz]);
+
+    // 6. Crear PDF
+    const doc = new PDFDocument({ margin: 50 });
+    const fileName = `informe-aprendiz-${idAprendiz}.pdf`;
+
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+    res.setHeader('Content-Type', 'application/pdf');
+    doc.pipe(res);
+
+    doc.fontSize(18).fillColor('#39A900').text('Informe por Aprendiz', { align: 'center' });
+    doc.moveDown();
+
+    doc.fontSize(12).fillColor('black').text(`Nombre: ${aprendiz.Nombre} ${aprendiz.Apellido}`);
+    doc.text(`Ficha: ${aprendiz.Nombre_Ficha} (ID: ${aprendiz.ID_Ficha})`);
+    doc.moveDown();
+
+    // Sección: Asistencias
+    doc.fontSize(14).text('Registro de Asistencia:', { underline: true });
+    if (asistencias.length > 0) {
+      asistencias.forEach((a, i) => {
+        doc.fontSize(11).text(`Semana ${i + 1}: [${a.Lunes}, ${a.Martes}, ${a.Miércoles}, ${a.Jueves}, ${a.Viernes}]`);
+      });
+    } else {
+      doc.text('No se encontraron registros de asistencia.');
+    }
+
+    doc.moveDown();
+
+    // Sección: Alertas
+    doc.fontSize(14).text('Alertas Generadas:', { underline: true });
+    if (alertas.length > 0) {
+      alertas.forEach(a => {
+        doc.fontSize(11).text(`• ${a.fecha} - Estado: ${a.Estado}`);
+      });
+    } else {
+      doc.text('Sin alertas registradas.');
+    }
+
+    doc.moveDown();
+
+    // Sección: Intervenciones
+    doc.fontSize(14).text('Intervenciones Realizadas:', { underline: true });
+    if (intervenciones.length > 0) {
+      intervenciones.forEach(i => {
+        doc.fontSize(11).text(`• ${i.Fecha_Intervencion} - ${i.Tipo_Intervencion} (${i.Resultado})`);
+      });
+    } else {
+      doc.text('No hay intervenciones registradas.');
+    }
+
+    doc.moveDown();
+
+    // Sección: Plan de seguimiento
+    doc.fontSize(14).text('Plan de Seguimiento:', { underline: true });
+    if (planes.length > 0) {
+      const p = planes[0];
+      doc.fontSize(11).text(`Tipo: ${p.Tipo_Seguimiento}`);
+      doc.text(`Estado: ${p.Estado}`);
+      doc.text(`Duración: ${p.Fecha_Inicio} a ${p.Fecha_Fin}`);
+      doc.text(`Descripción: ${p.Descripcion}`);
+    } else {
+      doc.text('Sin plan de seguimiento activo.');
+    }
+
+    doc.end();
+
+  } catch (error) {
+    console.error('❌ Error al generar informe por aprendiz:', error.message);
+    res.status(500).json({ mensaje: 'Error al generar informe por aprendiz', error });
   }
 };

@@ -1,6 +1,7 @@
 
 // Importamos el modelo de Usuario
 import Usuario from '../models/usuario.model.js';
+import bcrypt from 'bcryptjs';
 
 /**
  * Controlador para manejar las peticiones relacionadas con la tabla 'Usuarios'
@@ -35,7 +36,16 @@ export const obtenerUsuarioPorId = async (req, res) => {
 export const crearUsuario = async (req, res) => {
   const { nombre, contrasena, idRol, email } = req.body;
   try {
-    const id = await Usuario.crear({ nombre, contrasena, idRol, email });
+    // 🔐 Cifrar la contraseña antes de guardar
+    const hash = await bcrypt.hash(contrasena, 10);
+
+    const id = await Usuario.crear({
+      Nombre_Usuario: nombre,
+      Contraseña: hash,
+      ID_Rol: idRol,
+      Email: email
+    });
+
     res.status(201).json({ mensaje: 'Usuario creado correctamente', id });
   } catch (error) {
     res.status(500).json({ mensaje: 'Error al crear el usuario', error });
@@ -47,7 +57,16 @@ export const actualizarUsuario = async (req, res) => {
   const { id } = req.params;
   const { nombre, contrasena, idRol, email } = req.body;
   try {
-    const filasAfectadas = await Usuario.actualizar(id, { nombre, contrasena, idRol, email });
+    // 🔐 Cifrar la nueva contraseña antes de actualizar
+    const hash = await bcrypt.hash(contrasena, 10);
+
+    const filasAfectadas = await Usuario.actualizar(id, {
+      Nombre_Usuario: nombre,
+      Contraseña: hash,
+      ID_Rol: idRol,
+      Email: email
+    });
+
     if (filasAfectadas > 0) {
       res.json({ mensaje: 'Usuario actualizado correctamente' });
     } else {
