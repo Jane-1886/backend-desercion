@@ -9,6 +9,10 @@ import {
   eliminarAlerta
 } from '../controllers/alerta.controller.js';
 
+import verificarToken from '../middlewares/authMiddleware.js';
+import autorizarRol from '../middlewares/autorizarRol.js';
+
+
 const router = express.Router();
 
 /**
@@ -29,5 +33,13 @@ router.put('/:id', actualizarAlerta);
 
 // DELETE - Eliminar una alerta
 router.delete('/:id', eliminarAlerta);
+
+// ✅ Protegemos las rutas con rol Instructor (1)
+router.get('/', verificarToken, autorizarRol(1), obtenerAlertas);
+router.get('/:id', verificarToken, autorizarRol(1), obtenerAlertaPorId);
+router.post('/', verificarToken, autorizarRol(1), crearAlerta);
+router.put('/:id', verificarToken, autorizarRol(1), actualizarAlerta);
+router.delete('/:id', verificarToken, autorizarRol(1), eliminarAlerta);
+
 
 export default router;

@@ -1,5 +1,3 @@
-
-// Importamos Express y el controlador
 import express from 'express';
 import {
   obtenerAsistencias,
@@ -9,25 +7,29 @@ import {
   eliminarAsistencia
 } from '../controllers/asistencia.controller.js';
 
+import verificarToken from '../middlewares/authMiddleware.js';
+import autorizarRoles from '../middlewares/autorizarRol.js';
+
+
 const router = express.Router();
 
 /**
- * Rutas para manejar CRUD de la tabla 'Asistencia'
+ * Rutas protegidas para el rol Instructor (ID: 1)
  */
 
-// GET - Obtener todas las asistencias
-router.get('/', obtenerAsistencias);
-
-// GET - Obtener una asistencia por ID
-router.get('/:id', obtenerAsistenciaPorId);
+// GET - Obtener todas las asistencias de un aprendiz
+router.get('/:idAprendiz', verificarToken, autorizarRoles(1), obtenerAsistencias);
 
 // POST - Crear una nueva asistencia
-router.post('/', crearAsistencia);
+router.post('/', verificarToken, autorizarRoles(1), crearAsistencia);
 
-// PUT - Actualizar una asistencia existente
-router.put('/:id', actualizarAsistencia);
+// PUT - Actualizar una asistencia
+router.put('/:idAsistencia', verificarToken, autorizarRoles(1), actualizarAsistencia);
 
-// DELETE - Eliminar una asistencia
-router.delete('/:id', eliminarAsistencia);
+// DELETE - Eliminar asistencia
+router.delete('/:idAsistencia', verificarToken, autorizarRoles(1), eliminarAsistencia);
+
+// (Opcional) Consultar una asistencia específica
+router.get('/una/:id', verificarToken, autorizarRoles(1), obtenerAsistenciaPorId);
 
 export default router;

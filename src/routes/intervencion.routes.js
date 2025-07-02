@@ -1,4 +1,3 @@
-
 // Importar Express y el controlador
 import express from 'express';
 import {
@@ -9,25 +8,28 @@ import {
   eliminarIntervencion
 } from '../controllers/intervencion.controller.js';
 
+import verificarToken from '../middlewares/authMiddleware.js';
+import autorizarRoles from '../middlewares/autorizarRol.js';
+
 const router = express.Router();
 
 /**
- * Rutas para el CRUD de Intervenciones
+ * ✅ Rutas protegidas para el CRUD de Intervenciones (rol: Instructor = 1)
  */
 
 // GET - Todas las intervenciones
-router.get('/', obtenerIntervenciones);
+router.get('/', verificarToken, autorizarRoles(1), obtenerIntervenciones);
 
 // GET - Una intervención por ID
-router.get('/:id', obtenerIntervencionPorId);
+router.get('/:id', verificarToken, autorizarRoles(1), obtenerIntervencionPorId);
 
 // POST - Crear nueva intervención
-router.post('/', crearIntervencion);
+router.post('/', verificarToken, autorizarRoles(1), crearIntervencion);
 
 // PUT - Actualizar intervención existente
-router.put('/:id', actualizarIntervencion);
+router.put('/:id', verificarToken, autorizarRoles(1), actualizarIntervencion);
 
 // DELETE - Eliminar intervención
-router.delete('/:id', eliminarIntervencion);
+router.delete('/:id', verificarToken, autorizarRoles(1), eliminarIntervencion);
 
 export default router;

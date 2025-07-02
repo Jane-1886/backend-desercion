@@ -316,3 +316,114 @@ export const generarInformePorAprendiz = async (req, res) => {
     res.status(500).json({ mensaje: 'Error al generar informe por aprendiz', error });
   }
 };
+export const obtenerResumenEstadisticas = async (req, res) => {
+  try {
+    // Total de aprendices
+    const [aprendicesRows] = await db.query('SELECT COUNT(*) AS total FROM Aprendices');
+    const totalAprendices = aprendicesRows[0].total;
+
+    // Total de alertas
+    const [alertasRows] = await db.query('SELECT COUNT(*) AS total FROM alertas');
+    const totalAlertas = alertasRows[0].total;
+
+    // Total de fichas
+    const [fichasRows] = await db.query('SELECT COUNT(*) AS total FROM fichas_de_formacion');
+    const totalFichas = fichasRows[0].total;
+
+    // Top 5 aprendices con más alertas
+    const [topAlertas] = await db.query(`
+      SELECT ID_Aprendiz AS idAprendiz, COUNT(*) AS cantidad
+      FROM alertas
+      GROUP BY ID_Aprendiz
+      ORDER BY cantidad DESC
+      LIMIT 5
+    `);
+
+    // Fecha con más alertas
+    const [fechaMasAlertas] = await db.query(`
+      SELECT DATE(Fecha_Alerta) AS fecha, COUNT(*) AS cantidad
+      FROM alertas
+      GROUP BY DATE(Fecha_Alerta)
+      ORDER BY cantidad DESC
+      LIMIT 1
+    `);
+
+    // Ficha con más alertas
+    const [fichaMasAlertas] = await db.query(`
+      SELECT f.ID_Ficha, f.Nombre_Ficha, COUNT(*) AS total_alertas
+      FROM alertas a
+      JOIN aprendices ap ON a.ID_Aprendiz = ap.ID_Aprendiz
+      JOIN fichas_de_formacion f ON ap.ID_Ficha = f.ID_Ficha
+      GROUP BY ap.ID_Ficha
+      ORDER BY total_alertas DESC
+      LIMIT 1
+    `);
+
+    // Aprendiz con más inasistencias
+    const [inasistencias] = await db.query(`
+      SELECT ap.ID_Aprendiz, ap.Nombre, ap.Apellido, asi.*
+      FROM asistencia asi
+      JOIN aprendices ap ON asi.ID_Aprendiz = ap.ID_Aprendiz
+    `);
+
+    const conteo = {};
+    inasistencias.forEach(a => {
+      const total = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'].reduce((acc, dia) => {
+        return acc + (a[dia] === 'No asistió' || a[dia] === 'No justificada' ? 1 : 0);
+      }, 0);
+      if (!conteo[a.ID_Aprendiz]) {
+        conteo[a.ID_Aprendiz] = {
+          nombre: `${a.Nombre} ${a.Apellido}`,
+          total
+        };
+      } else {
+        conteo[a.ID_Aprendiz].total += total;
+      }
+    });
+
+    let aprendizConMasInasistencias = { nombre: '', total: 0 };
+    for (const id in conteo) {
+      if (conteo[id].total > aprendizConMasInasistencias.total) {
+        aprendizConMasInasistencias = conteo[id];
+      }
+    }
+
+    // Promedio general de asistencia (asistencias justificadas o sí asistió)
+    const [totalAsistencia] = await db.query(`
+      SELECT Lunes, Martes, Miércoles, Jueves, Viernes
+      FROM asistencia
+    `);
+
+    let totalDias = 0;
+    let asistenciasPositivas = 0;
+
+    totalAsistencia.forEach(reg => {
+      ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'].forEach(dia => {
+        totalDias++;
+        if (reg[dia] === 'Sí asistió' || reg[dia] === 'Justificada') {
+          asistenciasPositivas++;
+        }
+      });
+    });
+
+    const promedioAsistencia = totalDias > 0 ? (asistenciasPositivas / totalDias * 100).toFixed(2) : '0.00';
+
+    // Resultado final
+    const resumen = {
+      totalAprendices,
+      totalAlertas,
+      totalFichas,
+      top5Alertas: topAlertas,
+      fechaConMasAlertas: fechaMasAlertas[0] || null,
+      fichaConMasAlertas: fichaMasAlertas[0] || null,
+      aprendizConMasInasistencias,
+      promedioAsistencia: `${promedioAsistencia}%`
+    };
+
+    res.json(resumen);
+
+  } catch (error) {
+    console.error('❌ Error al obtener resumen:', error.message);
+    res.status(500).json({ mensaje: 'Error al obtener estadísticas del sistema', error });
+  }
+};
