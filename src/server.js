@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import db from './config/db.js';
 
+
 // Cargar variables de entorno
 dotenv.config();
 console.log('📌 Iniciando servidor...');

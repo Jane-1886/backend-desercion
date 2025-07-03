@@ -1,5 +1,5 @@
 
-// Importar Express y el controlador de alertas
+// Importar dependencias
 import express from 'express';
 import {
   obtenerAlertas,
@@ -9,37 +9,29 @@ import {
   eliminarAlerta
 } from '../controllers/alerta.controller.js';
 
-import verificarToken from '../middlewares/authMiddleware.js';
-import autorizarRol from '../middlewares/autorizarRol.js';
-
+import verificarToken from '../middlewares/authMiddleware.js'; // Verifica token JWT
+import autorizarRoles from '../middlewares/autorizarRol.js';   // Autoriza acceso por rol
 
 const router = express.Router();
 
 /**
- * Rutas para CRUD de la tabla 'Alertas'
+ * ✅ Rutas protegidas por roles:
+ * Instructor (1) y Coordinador (2) pueden consultar, crear, editar o eliminar alertas.
  */
 
-// GET - Obtener todas las alertas
-router.get('/', obtenerAlertas);
+// GET - Listar todas las alertas
+router.get('/', verificarToken, autorizarRoles(1, 2), obtenerAlertas);
 
-// GET - Obtener alerta por ID
-router.get('/:id', obtenerAlertaPorId);
+// GET - Obtener una alerta específica por ID
+router.get('/:id', verificarToken, autorizarRoles(1, 2), obtenerAlertaPorId);
 
 // POST - Crear nueva alerta
-router.post('/', crearAlerta);
+router.post('/', verificarToken, autorizarRoles(1, 2), crearAlerta);
 
-// PUT - Actualizar una alerta existente
-router.put('/:id', actualizarAlerta);
+// PUT - Editar alerta existente
+router.put('/:id', verificarToken, autorizarRoles(1, 2), actualizarAlerta);
 
-// DELETE - Eliminar una alerta
-router.delete('/:id', eliminarAlerta);
-
-// ✅ Protegemos las rutas con rol Instructor (1)
-router.get('/', verificarToken, autorizarRol(1), obtenerAlertas);
-router.get('/:id', verificarToken, autorizarRol(1), obtenerAlertaPorId);
-router.post('/', verificarToken, autorizarRol(1), crearAlerta);
-router.put('/:id', verificarToken, autorizarRol(1), actualizarAlerta);
-router.delete('/:id', verificarToken, autorizarRol(1), eliminarAlerta);
-
+// DELETE - Eliminar alerta
+router.delete('/:id', verificarToken, autorizarRoles(1, 2), eliminarAlerta);
 
 export default router;

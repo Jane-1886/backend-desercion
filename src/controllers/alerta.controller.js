@@ -72,3 +72,20 @@ export const eliminarAlerta = async (req, res) => {
     res.status(500).json({ mensaje: 'Error al eliminar la alerta', error });
   }
 };
+// 🔔 Obtener todas las alertas asociadas a un aprendiz
+export const obtenerAlertasPorAprendiz = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [alertas] = await Alerta.obtenerPorAprendiz(id);
+
+    if (alertas.length > 0) {
+      res.json(alertas);
+    } else {
+      res.status(404).json({ mensaje: 'No se encontraron alertas para este aprendiz' });
+    }
+  } catch (error) {
+    console.error('❌ Error al obtener alertas por aprendiz:', error.message);
+    res.status(500).json({ mensaje: 'Error del servidor' });
+  }
+};
+

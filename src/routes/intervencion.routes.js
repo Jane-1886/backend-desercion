@@ -14,22 +14,23 @@ import autorizarRoles from '../middlewares/autorizarRol.js';
 const router = express.Router();
 
 /**
- * ✅ Rutas protegidas para el CRUD de Intervenciones (rol: Instructor = 1)
+ * ✅ Rutas protegidas para el CRUD de Intervenciones
+ * Acceso permitido para roles: Instructor (1) y Coordinador (2)
  */
 
 // GET - Todas las intervenciones
-router.get('/', verificarToken, autorizarRoles(1), obtenerIntervenciones);
+router.get('/', verificarToken, autorizarRoles(1, 2), obtenerIntervenciones);
 
 // GET - Una intervención por ID
-router.get('/:id', verificarToken, autorizarRoles(1), obtenerIntervencionPorId);
+router.get('/:id', verificarToken, autorizarRoles(1, 2), obtenerIntervencionPorId);
 
 // POST - Crear nueva intervención
-router.post('/', verificarToken, autorizarRoles(1), crearIntervencion);
+router.post('/', verificarToken, autorizarRoles(1, 2), crearIntervencion);
 
 // PUT - Actualizar intervención existente
-router.put('/:id', verificarToken, autorizarRoles(1), actualizarIntervencion);
+router.put('/:id', verificarToken, autorizarRoles(1, 2), actualizarIntervencion);
 
 // DELETE - Eliminar intervención
-router.delete('/:id', verificarToken, autorizarRoles(1), eliminarIntervencion);
+router.delete('/:id', verificarToken, autorizarRoles(1, 2), eliminarIntervencion);
 
 export default router;

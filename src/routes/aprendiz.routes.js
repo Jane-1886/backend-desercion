@@ -8,50 +8,28 @@ import {
   eliminarAprendiz
 } from '../controllers/aprendiz.controller.js';
 
+import verificarToken from '../middlewares/authMiddleware.js';
+import autorizarRoles from '../middlewares/autorizarRol.js';
+
 const router = express.Router();
 
 /**
- * 📄 Obtener todos los aprendices
- * @route GET /api/aprendices
- * @description Retorna una lista de todos los aprendices registrados
+ * ✅ Rutas protegidas para el rol 3 (Administrador)
  */
-router.get('/', obtenerAprendices);
 
-/**
- * 🔍 Obtener aprendiz por ID
- * @route GET /api/aprendices/:id
- * @param {number} id - ID del aprendiz a consultar
- * @description Busca un aprendiz específico por su ID
- */
-router.get('/:id', obtenerAprendizPorId);
+// GET - Ver todos los aprendices
+router.get('/', verificarToken, autorizarRoles(3), obtenerAprendices);
 
-/**
- * ➕ Crear nuevo aprendiz
- * @route POST /api/aprendices
- * @body {string} Nombre - Nombre del aprendiz
- * @body {string} Apellido - Apellido del aprendiz
- * @body {string} Estado - Estado del aprendiz (Activo/Inactivo)
- * @description Crea un nuevo registro de aprendiz
- */
-router.post('/', crearAprendiz);
+// GET - Ver un aprendiz por ID
+router.get('/:id', verificarToken, autorizarRoles(3), obtenerAprendizPorId);
 
-/**
- * ✏️ Actualizar aprendiz
- * @route PUT /api/aprendices/:id
- * @param {number} id - ID del aprendiz a actualizar
- * @body {string} Nombre - Nombre actualizado
- * @body {string} Apellido - Apellido actualizado
- * @body {string} Estado - Estado actualizado
- * @description Actualiza la información de un aprendiz existente
- */
-router.put('/:id', actualizarAprendiz);
+// POST - Crear nuevo aprendiz
+router.post('/', verificarToken, autorizarRoles(3), crearAprendiz);
 
-/**
- * ❌ Eliminar aprendiz
- * @route DELETE /api/aprendices/:id
- * @param {number} id - ID del aprendiz a eliminar
- * @description Elimina un aprendiz del sistema
- */
-router.delete('/:id', eliminarAprendiz);
+// PUT - Actualizar aprendiz
+router.put('/:id', verificarToken, autorizarRoles(3), actualizarAprendiz);
+
+// DELETE - Eliminar aprendiz
+router.delete('/:id', verificarToken, autorizarRoles(3), eliminarAprendiz);
 
 export default router;

@@ -97,3 +97,21 @@ export const eliminarFicha = async (req, res) => {
     res.status(500).json({ mensaje: 'Error al eliminar ficha', error });
   }
 };
+export const cambiarEstadoFicha = async (req, res) => {
+  const { id } = req.params;
+  const { estado } = req.body; // "Activo" o "Inactivo"
+
+  try {
+    const sql = 'UPDATE Fichas_de_Formacion SET Estado = ? WHERE ID_Ficha = ?';
+    const [resultado] = await db.query(sql, [estado, id]);
+
+    if (resultado.affectedRows === 0) {
+      return res.status(404).json({ mensaje: 'Ficha no encontrada' });
+    }
+
+    res.json({ mensaje: `Ficha actualizada a estado ${estado}` });
+  } catch (error) {
+    res.status(500).json({ mensaje: 'Error al cambiar estado de ficha', error });
+  }
+};
+

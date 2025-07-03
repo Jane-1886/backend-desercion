@@ -10,26 +10,27 @@ import {
 import verificarToken from '../middlewares/authMiddleware.js';
 import autorizarRoles from '../middlewares/autorizarRol.js';
 
-
 const router = express.Router();
 
 /**
- * Rutas protegidas para el rol Instructor (ID: 1)
+ * ✅ Rutas protegidas:
+ * - Rol 1: puede ver, crear, editar, eliminar
+ * - Rol 2: solo puede ver (GET)
  */
 
-// GET - Obtener todas las asistencias de un aprendiz
-router.get('/:idAprendiz', verificarToken, autorizarRoles(1), obtenerAsistencias);
+// 🔍 GET - Ver todas las asistencias de un aprendiz (Instructor y Coordinador)
+router.get('/:idAprendiz', verificarToken, autorizarRoles(1, 2), obtenerAsistencias);
 
-// POST - Crear una nueva asistencia
+// 🔍 GET - Ver una asistencia por ID (Instructor y Coordinador)
+router.get('/una/:id', verificarToken, autorizarRoles(1, 2), obtenerAsistenciaPorId);
+
+// ✅ POST - Registrar nueva asistencia (solo Instructor)
 router.post('/', verificarToken, autorizarRoles(1), crearAsistencia);
 
-// PUT - Actualizar una asistencia
+// ✏️ PUT - Actualizar asistencia (solo Instructor)
 router.put('/:idAsistencia', verificarToken, autorizarRoles(1), actualizarAsistencia);
 
-// DELETE - Eliminar asistencia
+// ❌ DELETE - Eliminar asistencia (solo Instructor)
 router.delete('/:idAsistencia', verificarToken, autorizarRoles(1), eliminarAsistencia);
-
-// (Opcional) Consultar una asistencia específica
-router.get('/una/:id', verificarToken, autorizarRoles(1), obtenerAsistenciaPorId);
 
 export default router;

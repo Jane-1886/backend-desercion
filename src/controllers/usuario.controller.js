@@ -91,3 +91,22 @@ export const eliminarUsuario = async (req, res) => {
     res.status(500).json({ mensaje: 'Error al eliminar el usuario', error });
   }
 };
+// Cambiar estado del usuario (activar/desactivar)
+export const cambiarEstadoUsuario = async (req, res) => {
+  const { id } = req.params;
+  const { estado } = req.body; // Se espera "Activo" o "Inactivo"
+
+  try {
+    const sql = 'UPDATE Usuarios SET Estado = ? WHERE ID_Usuario = ?';
+    const [resultado] = await db.query(sql, [estado, id]);
+
+    if (resultado.affectedRows === 0) {
+      return res.status(404).json({ mensaje: 'Usuario no encontrado' });
+    }
+
+    res.json({ mensaje: `Usuario actualizado a estado ${estado}` });
+  } catch (error) {
+    res.status(500).json({ mensaje: 'Error al cambiar estado del usuario', error });
+  }
+};
+

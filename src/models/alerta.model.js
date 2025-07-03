@@ -19,6 +19,13 @@ class Alerta {
     return filas[0];
   }
 
+  // Modelo de Alerta
+static async obtenerPorAprendiz(idAprendiz) {
+  const sql = `SELECT * FROM Alertas WHERE ID_Aprendiz = ?`;
+  const [rows] = await db.query(sql, [idAprendiz]);
+  return [rows]; // importante devolver en array doble para mantener compatibilidad
+}
+
   // Crear nueva alerta
   static async crear({ idAprendiz, estado }) {
     const sql = `
@@ -46,5 +53,7 @@ class Alerta {
     return resultado.affectedRows;
   }
 }
+
+
 
 export default Alerta;
