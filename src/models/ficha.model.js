@@ -63,6 +63,13 @@ class Ficha {
     const [resultado] = await db.query('DELETE FROM Fichas_de_Formacion WHERE ID_Ficha = ?', [id]);
     return resultado.affectedRows;
   }
+
+// Cambiar el estado de una ficha (activar/inactivar)
+static async cambiarEstado(idFicha, nuevoEstado) {
+  const sql = `UPDATE Fichas_de_Formacion SET Estado = ? WHERE ID_Ficha = ?`;
+  const [resultado] = await db.query(sql, [nuevoEstado, idFicha]);
+  return resultado.affectedRows;
+}
 }
 
 export default Ficha;

@@ -97,21 +97,26 @@ export const eliminarFicha = async (req, res) => {
     res.status(500).json({ mensaje: 'Error al eliminar ficha', error });
   }
 };
+// Cambiar el estado de una ficha (Activo/Inactivo)
 export const cambiarEstadoFicha = async (req, res) => {
-  const { id } = req.params;
-  const { estado } = req.body; // "Activo" o "Inactivo"
+  const idFicha = req.params.id;
+  const { estado } = req.body;
+
+  if (!['Activo', 'Inactivo'].includes(estado)) {
+    return res.status(400).json({ mensaje: 'Estado no válido. Usa "Activo" o "Inactivo".' });
+  }
 
   try {
-    const sql = 'UPDATE Fichas_de_Formacion SET Estado = ? WHERE ID_Ficha = ?';
-    const [resultado] = await db.query(sql, [estado, id]);
+    const resultado = await Ficha.cambiarEstado(idFicha, estado);
 
-    if (resultado.affectedRows === 0) {
-      return res.status(404).json({ mensaje: 'Ficha no encontrada' });
+    if (resultado > 0) {
+      res.status(200).json({ mensaje: `Ficha ${idFicha} actualizada a estado: ${estado}.` });
+    } else {
+      res.status(404).json({ mensaje: 'Ficha no encontrada o sin cambios.' });
     }
 
-    res.json({ mensaje: `Ficha actualizada a estado ${estado}` });
   } catch (error) {
-    res.status(500).json({ mensaje: 'Error al cambiar estado de ficha', error });
+    console.error('Error al cambiar estado de ficha:', error);
+    res.status(500).json({ mensaje: 'Error interno del servidor.' });
   }
 };
-

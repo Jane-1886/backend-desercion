@@ -5,7 +5,8 @@ import {
   generarInformePDF,
   generarInformePorFicha,
   generarInformePorAprendiz,
-  obtenerResumenEstadisticas
+  obtenerResumenEstadisticas,
+  generarInformeInstitucional
 } from '../controllers/informe.controller.js';
 
 import verificarToken from '../middlewares/authMiddleware.js'; // Middleware de autenticación
@@ -30,5 +31,9 @@ router.get('/ficha/:id', verificarToken, autorizarRoles(1, 2), generarInformePor
 
 // 👤 Informe por aprendiz (Instructor y Coordinador)
 router.get('/aprendiz/:id', verificarToken, autorizarRoles(1, 2), generarInformePorAprendiz);
+
+// ✅ Solo accesible por el rol coordinador (ID_Rol = 3)
+
+router.get('/institucional/asistencia', verificarToken, autorizarRoles(3), generarInformeInstitucional);
 
 export default router;

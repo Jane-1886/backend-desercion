@@ -38,6 +38,10 @@ router.delete('/:id', verificarToken, autorizarRoles(1, 2, 3), eliminarUsuario);
 
 // PATCH- activar y desactivar usuarios
 router.patch('/:id/estado', verificarToken, autorizarRoles(3), cambiarEstadoUsuario);
+// routes/usuario.routes.js
+
+router.get('/', verificarToken, autorizarRoles(3), obtenerUsuarios);
+
 
 
 export default router;

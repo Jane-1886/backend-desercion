@@ -427,3 +427,86 @@ export const obtenerResumenEstadisticas = async (req, res) => {
     res.status(500).json({ mensaje: 'Error al obtener estadísticas del sistema', error });
   }
 };
+
+/**
+ * Genera un informe PDF con el resumen de inasistencias a nivel institucional
+ * Solo accesible por el rol Administrador (ID_Rol = 3)
+ */
+
+export const generarInformeInstitucional  = async (req, res) => {
+  try {
+    const [datos] = await db.query(`
+      SELECT
+        ap.ID_Aprendiz,
+        ap.Nombre AS NombreAprendiz,
+        ap.Estado AS EstadoAprendiz,
+        f.Nombre_Ficha,
+        f.Estado AS EstadoFicha,
+        SUM(a.Lunes = 'No asistió') +
+        SUM(a.Martes = 'No asistió') +
+        SUM(a.Miércoles = 'No asistió') +
+        SUM(a.Jueves = 'No asistió') +
+        SUM(a.Viernes = 'No asistió') AS TotalInasistencias
+      FROM Aprendices ap
+      JOIN Fichas_de_Formacion f ON ap.ID_Ficha = f.ID_Ficha
+      JOIN Asistencia a ON ap.ID_Aprendiz = a.ID_Aprendiz
+      GROUP BY ap.ID_Aprendiz
+      ORDER BY TotalInasistencias DESC
+    `);
+
+    const doc = new PDFDocument({ margin: 50, size: 'A4' });
+
+    // Encabezado de respuesta
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'inline; filename=reporte_inasistencia_institucional.pdf');
+
+    doc.pipe(res);
+
+    // Título
+    doc.fontSize(18).text('📋 Reporte Institucional de Inasistencias', { align: 'center' });
+    doc.moveDown(1);
+
+    // Encabezados de tabla
+    const tableTop = 100;
+    const columnSpacing = 100;
+    const rowHeight = 20;
+
+    doc.fontSize(12);
+    doc.text('N°', 50, tableTop);
+    doc.text('Aprendiz', 80, tableTop);
+    doc.text('Ficha', 200, tableTop);
+    doc.text('Estado A.', 300, tableTop);
+    doc.text('Estado F.', 380, tableTop);
+    doc.text('Inasistencias', 470, tableTop);
+
+    let y = tableTop + 25;
+
+    datos.forEach((fila, index) => {
+      // Pintamos las filas normales
+      doc.fillColor('black');
+      doc.text(index + 1, 50, y);
+      doc.text(fila.NombreAprendiz, 80, y);
+      doc.text(fila.Nombre_Ficha, 200, y);
+      doc.text(fila.EstadoAprendiz, 300, y);
+      doc.text(fila.EstadoFicha, 380, y);
+
+      // Coloreamos de rojo si tiene inasistencias
+      if (fila.TotalInasistencias > 0) {
+        doc.fillColor('red');
+      } else {
+        doc.fillColor('green');
+      }
+
+      doc.text(fila.TotalInasistencias.toString(), 470, y);
+      y += rowHeight;
+    });
+
+    doc.end();
+  } catch (error) {
+    console.error('Error al generar el informe institucional:', error);
+    res.status(500).json({
+      mensaje: 'Error al generar el informe institucional',
+      error: error.message,
+    });
+  }
+};

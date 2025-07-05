@@ -2,19 +2,28 @@
 // Importamos el modelo de Usuario
 import Usuario from '../models/usuario.model.js';
 import bcrypt from 'bcryptjs';
+import db from '../config/db.js';
 
 /**
  * Controlador para manejar las peticiones relacionadas con la tabla 'Usuarios'
  */
 
-// Obtener todos los usuarios
+// Obtener todos los usuarios con su rol
 export const obtenerUsuarios = async (req, res) => {
   try {
-    const usuarios = await Usuario.obtenerTodos();
+    const [usuarios] = await db.query(`
+       SELECT u.ID_Usuario, u.Nombre_Usuario, u.Email, r.Nombre_Rol
+  FROM Usuarios u
+  JOIN Roles r ON u.ID_Rol = r.ID_Rol
+    `);
     res.json(usuarios);
   } catch (error) {
-    res.status(500).json({ mensaje: 'Error al obtener los usuarios', error });
-  }
+  console.error('❌ Error al obtener usuarios:', error.message);
+  res.status(500).json({
+    mensaje: 'Error al obtener los usuarios',
+    error: error.message  // 👈 ahora se verá el detalle real
+  });
+}
 };
 
 // Obtener un solo usuario por ID

@@ -35,8 +35,8 @@ export const obtenerAsistenciaPorId = async (req, res) => {
 // Crear nueva asistencia
 export const crearAsistencia = async (req, res) => {
   try {
-    const { idAprendiz, lunes, martes, miercoles, jueves, viernes } = req.body;
-    const id = await Asistencia.crear({ idAprendiz, lunes, martes, miercoles, jueves, viernes });
+    const { idAprendiz, Lunes, Martes, Miércoles, Jueves, Viernes } = req.body;
+    const id = await Asistencia.crear({ idAprendiz, Lunes, Martes, Miércoles, Jueves, Viernes });
     res.status(201).json({ mensaje: 'Asistencia registrada correctamente', id });
   } catch (error) {
     console.error('❌ Error al crear asistencia:', error.message);
@@ -47,9 +47,9 @@ export const crearAsistencia = async (req, res) => {
 // Actualizar asistencia
 export const actualizarAsistencia = async (req, res) => {
   const { id } = req.params;
-  const { idAprendiz, lunes, martes, miercoles, jueves, viernes } = req.body;
+  const { idAprendiz, Lunes, Martes, Miércoles, Jueves, Viernes } = req.body;
   try {
-    const filas = await Asistencia.actualizar(id, { idAprendiz, lunes, martes, miercoles, jueves, viernes });
+    const filas = await Asistencia.actualizar(id, { idAprendiz, Lunes, Martes, Miércoles, Jueves, Viernes });
     if (filas > 0) {
       res.json({ mensaje: 'Asistencia actualizada correctamente' });
     } else {

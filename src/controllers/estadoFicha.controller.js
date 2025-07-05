@@ -1,6 +1,7 @@
 
 // Importamos el modelo
 import EstadoFicha from '../models/estadoFicha.model.js';
+import Ficha from '../models/ficha.model.js'; 
 
 /**
  * Controlador para el CRUD de la tabla 'Activar_Desactivar_Fichas'
@@ -74,6 +75,7 @@ export const eliminarEstadoFicha = async (req, res) => {
 };
 
 
+
 /**
  * Cambia el estado de una ficha (Activo ↔ Inactivo)
  */
@@ -87,7 +89,7 @@ export const cambiarEstadoFicha = async (req, res) => {
   }
 
   try {
-    const resultado = await EstadoFicha.actualizar(idFicha, estado);
+    const resultado = await Ficha.cambiarEstado(idFicha, estado); // Usa el modelo correcto
 
     if (resultado > 0) {
       res.status(200).json({ mensaje: `Ficha ${idFicha} actualizada a estado: ${estado}.` });
@@ -96,9 +98,7 @@ export const cambiarEstadoFicha = async (req, res) => {
     }
 
   } catch (error) {
-    console.error('Error al cambiar estado de ficha:', error);
-    res.status(500).json({ mensaje: 'Error interno del servidor.' });
+    console.error('❌ Error al cambiar estado de ficha:', error.message);
+    res.status(500).json({ mensaje: 'Error al cambiar estado de la ficha', error: error.message });
   }
 };
-
-
