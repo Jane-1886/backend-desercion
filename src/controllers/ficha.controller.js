@@ -1,6 +1,8 @@
 
 // Importamos el modelo
 import Ficha from '../models/ficha.model.js';
+import db from '../config/db.js';
+// ... otras importaciones ...
 
 /**
  * 🎓 Controlador para manejar el CRUD de la tabla 'Fichas_de_Formacion'
@@ -120,3 +122,29 @@ export const cambiarEstadoFicha = async (req, res) => {
     res.status(500).json({ mensaje: 'Error interno del servidor.' });
   }
 };
+
+
+// obtiene ficha activas
+export const obtenerFichasActivas = async (req, res) => {
+  try {
+    const [rows] = await db.query("SELECT * FROM Fichas_de_Formacion WHERE Estado = 'Activo'");
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error('❌ Error al obtener fichas activas:', error);
+    res.status(500).json({ mensaje: 'Error en el servidor' });
+  }
+};
+  //obtiene fichas inactivas
+export const obtenerFichasInactivas = async (req, res) => {
+  try {
+    const [rows] = await db.query("SELECT * FROM Fichas_de_Formacion WHERE Estado = 'Inactivo'");
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error('❌ Error al obtener fichas inactivas:', error);
+    res.status(500).json({ mensaje: 'Error en el servidor' });
+  }
+};
+
+
+
+

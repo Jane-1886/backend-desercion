@@ -1,49 +1,56 @@
 
-// Importamos la conexión a la base de datos
+// src/models/asistencia.model.js
 import db from '../config/db.js';
 
-/**
- * Modelo para la tabla 'Asistencia'
- * Permite realizar operaciones CRUD sobre los registros semanales de asistencia de los aprendices.
- */
 class Asistencia {
-  // Obtener todos los registros de asistencia
   static async obtenerTodas() {
-    const [filas] = await db.query('SELECT * FROM Asistencia');
-    return filas;
+    const [rows] = await db.query('SELECT * FROM asistencia');
+    return rows;
   }
 
-  // Obtener asistencia por ID
   static async obtenerPorId(id) {
-    const [filas] = await db.query('SELECT * FROM Asistencia WHERE ID_Asistencia = ?', [id]);
-    return filas[0];
+    const [rows] = await db.query('SELECT * FROM asistencia WHERE ID_Asistencia = ?', [id]);
+    return rows[0];
   }
 
-  // Crear nuevo registro de asistencia
-  static async crear({ idAprendiz, Lunes, Martes, Miércoles, Jueves, Viernes }) {
+  // ✅ ahora sí devolvemos fechas reales
+  static async obtenerPorAprendiz(idAprendiz) {
+    const [rows] = await db.query(
+      `SELECT 
+         a.ID_Asistencia,
+         a.ID_Aprendiz,
+         a.Lunes, a.Martes, a.Miércoles, a.Jueves, a.Viernes,
+         a.Fecha, a.Fecha_Semana
+       FROM asistencia a
+       WHERE a.ID_Aprendiz = ?
+       ORDER BY a.Fecha_Semana IS NULL, a.Fecha_Semana ASC, a.ID_Asistencia ASC`,
+      [idAprendiz]
+    );
+    return rows;
+  }
+
+  static async crear({ idAprendiz, Lunes, Martes, Miércoles, Jueves, Viernes, Fecha = null, Fecha_Semana = null }) {
     const sql = `
-      INSERT INTO Asistencia (ID_Aprendiz, Lunes, Martes, Miércoles, Jueves, Viernes)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO asistencia (ID_Aprendiz, Lunes, Martes, Miércoles, Jueves, Viernes, Fecha, Fecha_Semana)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
-    const [resultado] = await db.query(sql, [idAprendiz, Lunes, Martes, Miércoles, Jueves, Viernes]);
-    return resultado.insertId;
+    const [r] = await db.query(sql, [idAprendiz, Lunes, Martes, Miércoles, Jueves, Viernes, Fecha, Fecha_Semana]);
+    return r.insertId;
   }
 
-  // Actualizar asistencia
-  static async actualizar(id, { idAprendiz, Lunes, Martes, Miércoles, Jueves, Viernes }) {
+  static async actualizar(id, { idAprendiz, Lunes, Martes, Miércoles, Jueves, Viernes, Fecha = null, Fecha_Semana = null }) {
     const sql = `
-      UPDATE Asistencia
-      SET ID_Aprendiz = ?, Lunes = ?, Martes = ?, Miércoles = ?, Jueves = ?, Viernes = ?
+      UPDATE asistencia
+      SET ID_Aprendiz = ?, Lunes = ?, Martes = ?, Miércoles = ?, Jueves = ?, Viernes = ?, Fecha = ?, Fecha_Semana = ?
       WHERE ID_Asistencia = ?
     `;
-    const [resultado] = await db.query(sql, [idAprendiz, Lunes, Martes, Miércoles, Jueves, Viernes, id]);
-    return resultado.affectedRows;
+    const [r] = await db.query(sql, [idAprendiz, Lunes, Martes, Miércoles, Jueves, Viernes, Fecha, Fecha_Semana, id]);
+    return r.affectedRows;
   }
 
-  // Eliminar asistencia
   static async eliminar(id) {
-    const [resultado] = await db.query('DELETE FROM Asistencia WHERE ID_Asistencia = ?', [id]);
-    return resultado.affectedRows;
+    const [r] = await db.query('DELETE FROM asistencia WHERE ID_Asistencia = ?', [id]);
+    return r.affectedRows;
   }
 }
 

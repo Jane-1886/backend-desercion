@@ -1,5 +1,5 @@
 
-// Importamos la conexión a la base de datos
+// src/models/usuario.model.js
 import db from '../config/db.js';
 
 class Usuario {
@@ -13,23 +13,23 @@ class Usuario {
     return filas[0];
   }
 
-  // ✅ Recibe directamente los campos como vienen del controlador
-  static async crear({ Nombre_Usuario, Contraseña, ID_Rol, Email }) {
+  // ✅ ahora recibe más campos
+  static async crear({ Nombre_Usuario, Contraseña, ID_Rol, Email, Tipo_Documento = null, Numero_Documento = null, Celular = null }) {
     const sql = `
-      INSERT INTO Usuarios (Nombre_Usuario, Contraseña, ID_Rol, Email)
-      VALUES (?, ?, ?, ?)
+      INSERT INTO Usuarios (Nombre_Usuario, Contraseña, ID_Rol, Email, Tipo_Documento, Numero_Documento, Celular)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `;
-    const [resultado] = await db.query(sql, [Nombre_Usuario, Contraseña, ID_Rol, Email]);
+    const [resultado] = await db.query(sql, [Nombre_Usuario, Contraseña, ID_Rol, Email, Tipo_Documento, Numero_Documento, Celular]);
     return resultado.insertId;
   }
 
-  static async actualizar(id, { Nombre_Usuario, Contraseña, ID_Rol, Email }) {
+  static async actualizar(id, { Nombre_Usuario, Contraseña, ID_Rol, Email, Tipo_Documento = null, Numero_Documento = null, Celular = null }) {
     const sql = `
       UPDATE Usuarios
-      SET Nombre_Usuario = ?, Contraseña = ?, ID_Rol = ?, Email = ?
+      SET Nombre_Usuario = ?, Contraseña = ?, ID_Rol = ?, Email = ?, Tipo_Documento = ?, Numero_Documento = ?, Celular = ?
       WHERE ID_Usuario = ?
     `;
-    const [resultado] = await db.query(sql, [Nombre_Usuario, Contraseña, ID_Rol, Email, id]);
+    const [resultado] = await db.query(sql, [Nombre_Usuario, Contraseña, ID_Rol, Email, Tipo_Documento, Numero_Documento, Celular, id]);
     return resultado.affectedRows;
   }
 

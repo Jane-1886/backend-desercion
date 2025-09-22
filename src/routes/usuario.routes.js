@@ -1,47 +1,52 @@
-// Importar dependencias
-import express from 'express';
+// src/routes/usuario.routes.js
+import { Router } from 'express';
 import {
   obtenerUsuarios,
   obtenerUsuarioPorId,
   crearUsuario,
   actualizarUsuario,
   eliminarUsuario,
-  cambiarEstadoUsuario
+  cambiarEstadoUsuario,
+  obtenerUsuarioPorEmail,
+  listarInstructores,           // 👈 nuevo
+  listarInstructoresActivos,    // 👈 nuevo
+  listarInstructoresInactivos,  // 👈 nuevo
 } from '../controllers/usuario.controller.js';
 
-import verificarToken from '../middlewares/authMiddleware.js'; // Middleware que valida el token JWT
-import autorizarRoles from '../middlewares/autorizarRol.js';   // Middleware de control de acceso por rol
+import verificarToken from '../middlewares/authMiddleware.js';
+import autorizarRoles from '../middlewares/autorizarRol.js';
 
-const router = express.Router();
+const router = Router();
 
-/**
- * ✅ Rutas protegidas por roles:
- * - Instructor (1) y Coordinador (2) pueden consultar, actualizar y eliminar usuarios.
- * - Crear usuario no está protegido aquí porque es parte del registro general.
- */
+// Debug
+router.get('/ping', (req, res) => res.json({ ok: true, where: 'usuarios' }));
 
-// GET - Obtener lista de usuarios
+// Buscar por email
+router.get('/by-email/:email', verificarToken, autorizarRoles(1, 2, 3), obtenerUsuarioPorEmail);
+
+// 🔽 Listados de instructores (rol=Instructor)
+// GET /api/usuarios/instructores?estado=ACTIVO|INACTIVO (opcional)
+router.get('/instructores', verificarToken, autorizarRoles(1, 2, 3), listarInstructores);
+// Atajos:
+router.get('/instructores/activos', verificarToken, autorizarRoles(1, 2, 3), listarInstructoresActivos);
+router.get('/instructores/inactivos', verificarToken, autorizarRoles(1, 2, 3), listarInstructoresInactivos);
+
+// LISTAR
 router.get('/', verificarToken, autorizarRoles(1, 2, 3), obtenerUsuarios);
 
-// GET - Obtener un usuario por su ID
+// OBTENER por ID
 router.get('/:id', verificarToken, autorizarRoles(1, 2, 3), obtenerUsuarioPorId);
 
-// POST - Registrar nuevo usuario (deja sin protección o con rol específico si decides que solo el admin lo puede usar)
+// CREAR
 router.post('/', crearUsuario);
 
-// PUT - Actualizar usuario
+// ACTUALIZAR
 router.put('/:id', verificarToken, autorizarRoles(1, 2, 3), actualizarUsuario);
 
-// DELETE - Eliminar usuario
+// ELIMINAR
 router.delete('/:id', verificarToken, autorizarRoles(1, 2, 3), eliminarUsuario);
 
-
-// PATCH- activar y desactivar usuarios
+// CAMBIAR ESTADO (activar/desactivar) — solo rol 3
 router.patch('/:id/estado', verificarToken, autorizarRoles(3), cambiarEstadoUsuario);
-// routes/usuario.routes.js
-
-router.get('/', verificarToken, autorizarRoles(3), obtenerUsuarios);
-
-
 
 export default router;

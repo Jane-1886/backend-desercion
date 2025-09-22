@@ -1,14 +1,27 @@
-export const autorizarRoles = (...rolesPermitidos) => {
+// src/middlewares/autorizarRol.js
+// Acepta uno o varios roles, p.ej. autorizarRoles(1, 2, 3)
+const autorizarRoles = (...rolesPermitidos) => {
+  const permitidos = rolesPermitidos.map(String); // normaliza a string
   return (req, res, next) => {
-    const usuario = req.usuario; // este lo añade el middleware de token
-
-    if (!usuario || !rolesPermitidos.includes(usuario.ID_Rol)) {
-      return res.status(403).json({ mensaje: 'Acceso denegado: no tienes permisos suficientes.' });
+    if (!req.usuario) {
+      return res.status(401).json({ mensaje: "No autenticado." });
     }
+    // Ajusta estos alias al campo real de tu payload de login:
+    const rol =
+      req.usuario.ID_Rol ??
+      req.usuario.idRol ??
+      req.usuario.rol ??
+      req.usuario.role ??
+      req.usuario.roleId;
 
-    next(); // todo bien, sigue al siguiente middleware o controlador
+    if (rol == null) {
+      return res.status(403).json({ mensaje: "Acceso denegado: rol no presente en el token." });
+    }
+    if (!permitidos.includes(String(rol))) {
+      return res.status(403).json({ mensaje: "Acceso denegado: permisos insuficientes." });
+    }
+    next();
   };
 };
-
 
 export default autorizarRoles;

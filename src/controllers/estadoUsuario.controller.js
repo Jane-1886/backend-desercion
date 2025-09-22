@@ -77,28 +77,44 @@ export const eliminarEstadoUsuario = async (req, res) => {
 /**
  * Cambia el estado de un usuario (Activo ↔ Inactivo)
  */
+// PATCH /api/usuarios/:id/estado  body { estado, motivo?, observacion? }
 export const cambiarEstadoUsuario = async (req, res) => {
-  const idUsuario = req.params.id;
-  const { estado } = req.body;
+  const { id } = req.params;
+  const { estado, motivo, observacion } = req.body || {};
 
-  // Validar que el estado solo sea Activo o Inactivo
-  if (!['Activo', 'Inactivo'].includes(estado)) {
-    return res.status(400).json({ mensaje: 'Estado no válido. Usa "Activo" o "Inactivo".' });
+  const toUpper = (s) => String(s || '').trim().toUpperCase();
+  const ESTADO = toUpper(estado);
+  if (!['ACTIVO', 'INACTIVO'].includes(ESTADO)) {
+    return res.status(400).json({ mensaje: 'Estado no válido. Usa "ACTIVO" o "INACTIVO".' });
   }
+  const activo = ESTADO === 'ACTIVO' ? 1 : 0;
 
   try {
-    // Intentamos actualizar el estado
-    const resultado = await EstadoUsuario.actualizar(idUsuario, estado);
-
-    if (resultado > 0) {
-      res.status(200).json({ mensaje: `Estado del usuario ${idUsuario} actualizado a ${estado}.` });
+    if (ESTADO === 'INACTIVO') {
+      // ⬇️ Desactivación: persiste motivo/observación/fecha (y opcionalmente quién lo hizo)
+      const [r1] = await db.query(
+        `UPDATE Usuarios
+           SET Estado = ?, Activo = ? , 
+               Motivo_Baja = ?, Observacion_Baja = ?, Fecha_Baja = CURRENT_TIMESTAMP,
+               Baja_Por = ?
+         WHERE ID_Usuario = ?`,
+        [ESTADO, activo, motivo || null, observacion || null, req.user?.id || null, id]
+      );
+      if (r1.affectedRows === 0) return res.status(404).json({ mensaje: 'Usuario no encontrado.' });
+      return res.json({ mensaje: `Usuario ${id} actualizado a INACTIVO.`, estado: ESTADO, activo });
     } else {
-      res.status(404).json({ mensaje: 'Usuario no encontrado o sin cambios.' });
+      // ⬇️ Reactivación: por defecto limpiamos campos de baja (opcional)
+      const [r2] = await db.query(
+        `UPDATE Usuarios
+           SET Estado = ?, Activo = ?, 
+               Motivo_Baja = NULL, Observacion_Baja = NULL, Fecha_Baja = NULL, Baja_Por = NULL
+         WHERE ID_Usuario = ?`,
+        [ESTADO, activo, id]
+      );
+      if (r2.affectedRows === 0) return res.status(404).json({ mensaje: 'Usuario no encontrado.' });
+      return res.json({ mensaje: `Usuario ${id} actualizado a ACTIVO.`, estado: ESTADO, activo });
     }
-
   } catch (error) {
-    console.error('Error al cambiar estado del usuario:', error);
-    res.status(500).json({ mensaje: 'Error interno del servidor.' });
+    return res.status(500).json({ mensaje: 'Error al cambiar estado del usuario', error: error.message });
   }
 };
-

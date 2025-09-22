@@ -1,26 +1,17 @@
 
-import express from 'express';
-import { login } from '../controllers/auth.controller.js';
-// import { registrarUsuario, recuperarContraseña } from '../controllers/auth.controller.js'; // ✅ Descomentar cuando se activen
+import express from "express";
+import { login } from "../controllers/auth.controller.js";
+import verificarToken from '../middlewares/authMiddleware.js';
+
 
 const router = express.Router();
 
-/**
- * 📥 Ruta pública para iniciar sesión
- */
-router.post('/login', login);
+// Público
+router.post("/login", login);
 
-/**
- * 📝 Ruta pública para registrar usuario
- * ⚠️ Desactivada por ahora, lista para usar cuando el frontend tenga el formulario
- */
-// router.post('/registro', registrarUsuario);
-
-/**
- * 🔁 Ruta pública para recuperar contraseña
- * ⚠️ Desactivada por ahora, lista para usar cuando el frontend lo permita
- */
-// router.post('/recuperar', recuperarContraseña);
+// Protegido: para probar el token desde el front
+router.get("/me", verificarToken, (req, res) => {
+  res.json({ usuario: req.usuario });
+});
 
 export default router;
-
