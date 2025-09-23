@@ -1,11 +1,11 @@
 
 import express from 'express';
 import {
-  obtenerNotificaciones,
-  obtenerNotificacionPorId,
-  crearNotificacion,
-  actualizarNotificacion,
-  eliminarNotificacion
+  obtenerNotificaciones,        // coord: lista todo (con paginación opcional)
+  obtenerNotificacionPorId,     // coord/autor del item
+  crearNotificacion,            // bienestar (2)
+  actualizarNotificacion,       // coord (3) o autor del item si permites edición
+  eliminarNotificacion          // coord (3)
 } from '../controllers/notificacion.controller.js';
 
 import verificarToken from '../middlewares/authMiddleware.js';
@@ -13,24 +13,27 @@ import autorizarRoles from '../middlewares/autorizarRol.js';
 
 const router = express.Router();
 
-/**
- * ✅ Rutas protegidas para roles 1 (Instructor) y 2 (Coordinador)
- * - Ambos pueden ver, crear, actualizar y eliminar notificaciones
- */
+// ---- Listar ----
+// Coordinación ve todo
+router.get('/', verificarToken, autorizarRoles(3), obtenerNotificaciones);
 
-// GET - Todas las notificaciones
-router.get('/', verificarToken, autorizarRoles(1, 2), obtenerNotificaciones);
+// Opcional: Bienestar ve solo las suyas
+router.get('/mias', verificarToken, autorizarRoles(2), (req, res, next) => {
+  // Reutiliza obtenerNotificaciones pero con un flag en req para filtrar por req.usuario.id
+  req.soloDelUsuario = true;
+  return obtenerNotificaciones(req, res, next);
+});
 
-// GET - Notificación por ID
-router.get('/:id', verificarToken, autorizarRoles(1, 2), obtenerNotificacionPorId);
+// Ver una por id (coord o autor)
+router.get('/:id', verificarToken, autorizarRoles(2,3), obtenerNotificacionPorId);
 
-// POST - Crear nueva notificación
-router.post('/', verificarToken, autorizarRoles(1, 2), crearNotificacion);
+// ---- Crear (solo bienestar) ----
+router.post('/', verificarToken, autorizarRoles(2), crearNotificacion);
 
-// PUT - Actualizar notificación
-router.put('/:id', verificarToken, autorizarRoles(1, 2), actualizarNotificacion);
+// ---- Actualizar (solo coord) -> usa PATCH para estado/observación ----
+router.patch('/:id', verificarToken, autorizarRoles(3), actualizarNotificacion);
 
-// DELETE - Eliminar notificación
-router.delete('/:id', verificarToken, autorizarRoles(1, 2), eliminarNotificacion);
+// ---- Eliminar (solo coord) ----
+router.delete('/:id', verificarToken, autorizarRoles(3), eliminarNotificacion);
 
 export default router;

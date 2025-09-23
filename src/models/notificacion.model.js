@@ -1,48 +1,101 @@
 
+// models/notificacion.model.js
 // Importamos la conexión a la base de datos
 import db from '../config/db.js';
-/**
- * Modelo para la tabla 'Notificaciones'
- * Maneja las solicitudes de tipo administrativo que se registran en el sistema.
- */
+
+const TABLA = 'Notificaciones'; // respeta el nombre real de tu tabla
+
 class Notificacion {
-  // Obtener todas las notificaciones
+  // Obtener todas las notificaciones (devuelve alias amigables)
   static async obtenerTodas() {
-    const [filas] = await db.query('SELECT * FROM Notificaciones');
+    const sql = `
+      SELECT
+        ID_Notificacion   AS id,
+        Tipo_Solicitud    AS tipo,
+        Fecha_Solicitud   AS fecha,
+        Estado            AS estado,
+        Hora_Solicitud    AS hora,
+        Descripcion       AS descripcion
+      FROM ${TABLA}
+      ORDER BY Fecha_Solicitud DESC
+    `;
+    const [filas] = await db.query(sql);
     return filas;
   }
 
-  // Obtener notificación por ID
+  // Obtener notificación por ID (con alias)
   static async obtenerPorId(id) {
-    const [filas] = await db.query('SELECT * FROM Notificaciones WHERE ID_Notificacion = ?', [id]);
+    const sql = `
+      SELECT
+        ID_Notificacion   AS id,
+        Tipo_Solicitud    AS tipo,
+        Fecha_Solicitud   AS fecha,
+        Estado            AS estado,
+        Hora_Solicitud    AS hora,
+        Descripcion       AS descripcion
+      FROM ${TABLA}
+      WHERE ID_Notificacion = ?
+      LIMIT 1
+    `;
+    const [filas] = await db.query(sql, [id]);
     return filas[0];
   }
 
   // Crear nueva notificación
-  static async crear({ tipo, estado, hora, descripcion }) {
+  // Recibe { tipo, estado='Pendiente', hora, descripcion }
+  static async crear({ tipo, estado = 'Pendiente', hora, descripcion }) {
     const sql = `
-      INSERT INTO Notificaciones
-      (Tipo_Solicitud, Estado, Hora_Solicitud, Descripcion)
-      VALUES (?, ?, ?, ?)
+      INSERT INTO ${TABLA}
+      (Tipo_Solicitud, Estado, Hora_Solicitud, Descripcion, Fecha_Solicitud)
+      VALUES (?, ?, ?, ?, NOW())
     `;
     const [resultado] = await db.query(sql, [tipo, estado, hora, descripcion]);
     return resultado.insertId;
   }
 
-  // Actualizar una notificación
-  static async actualizar(id, { tipo, estado, hora, descripcion }) {
+  // Actualizar una notificación (actualización parcial)
+  // Recibe por ejemplo { estado: 'Atendida' } o cualquier combinación
+  static async actualizar(id, campos) {
+    // Mapeo de claves cortas -> columnas reales
+    const mapa = {
+      tipo:        'Tipo_Solicitud',
+      estado:      'Estado',
+      hora:        'Hora_Solicitud',
+      descripcion: 'Descripcion',
+      // Si algún día quieres permitir cambiar la fecha:
+      // fecha:    'Fecha_Solicitud',
+    };
+
+    const sets = [];
+    const valores = [];
+    for (const [k, v] of Object.entries(campos || {})) {
+      if (typeof v === 'undefined') continue;
+      const columna = mapa[k];
+      if (!columna) continue; // ignora claves desconocidas
+      sets.push(`${columna} = ?`);
+      valores.push(v);
+    }
+
+    if (sets.length === 0) {
+      // Nada que actualizar
+      return 0;
+    }
+
     const sql = `
-      UPDATE Notificaciones
-      SET Tipo_Solicitud = ?, Estado = ?, Hora_Solicitud = ?, Descripcion = ?
+      UPDATE ${TABLA}
+      SET ${sets.join(', ')}
       WHERE ID_Notificacion = ?
     `;
-    const [resultado] = await db.query(sql, [tipo, estado, hora, descripcion, id]);
+    valores.push(id);
+
+    const [resultado] = await db.query(sql, valores);
     return resultado.affectedRows;
   }
 
   // Eliminar notificación
   static async eliminar(id) {
-    const [resultado] = await db.query('DELETE FROM Notificaciones WHERE ID_Notificacion = ?', [id]);
+    const sql = `DELETE FROM ${TABLA} WHERE ID_Notificacion = ?`;
+    const [resultado] = await db.query(sql, [id]);
     return resultado.affectedRows;
   }
 }
