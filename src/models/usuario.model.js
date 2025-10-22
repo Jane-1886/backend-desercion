@@ -14,6 +14,7 @@ class Usuario {
   }
 
   // ✅ ahora recibe más campos
+<<<<<<< HEAD
   static async crear({ Nombre_Usuario, Contraseña, ID_Rol, Email, Tipo_Documento = null, Numero_Documento = null, Celular = null }) {
     const sql = `
       INSERT INTO Usuarios (Nombre_Usuario, Contraseña, ID_Rol, Email, Tipo_Documento, Numero_Documento, Celular)
@@ -30,6 +31,24 @@ class Usuario {
       WHERE ID_Usuario = ?
     `;
     const [resultado] = await db.query(sql, [Nombre_Usuario, Contraseña, ID_Rol, Email, Tipo_Documento, Numero_Documento, Celular, id]);
+=======
+  static async crear({ Nombre_Usuario, Contrasena, ID_Rol, Email, Tipo_Documento = null, Numero_Documento = null, Celular = null }) {
+    const sql = `
+      INSERT INTO Usuarios (Nombre_Usuario, Contrasena, ID_Rol, Email, Tipo_Documento, Numero_Documento, Celular)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `;
+    const [resultado] = await db.query(sql, [Nombre_Usuario, Contrasena, ID_Rol, Email, Tipo_Documento, Numero_Documento, Celular]);
+    return resultado.insertId;
+  }
+
+  static async actualizar(id, { Nombre_Usuario, Contrasena, ID_Rol, Email, Tipo_Documento = null, Numero_Documento = null, Celular = null }) {
+    const sql = `
+      UPDATE Usuarios
+      SET Nombre_Usuario = ?, Contrasena = ?, ID_Rol = ?, Email = ?, Tipo_Documento = ?, Numero_Documento = ?, Celular = ?
+      WHERE ID_Usuario = ?
+    `;
+    const [resultado] = await db.query(sql, [Nombre_Usuario, Contrasena, ID_Rol, Email, Tipo_Documento, Numero_Documento, Celular, id]);
+>>>>>>> 63a8aa6 (Inicialización del repositorio backend: estructura Node/Express, controladores y conexión MySQL)
     return resultado.affectedRows;
   }
 

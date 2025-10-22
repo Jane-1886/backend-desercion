@@ -98,6 +98,7 @@ export const obtenerUsuarioPorEmail = async (req, res) => {
 
 // CREAR
 export const crearUsuario = async (req, res) => {
+<<<<<<< HEAD
   console.log('📥 Datos recibidos del frontend:', req.body);
   const { nombre, contrasena, idRol, email, tipoDocumento, numeroDocumento, celular, estado = 'ACTIVO' } = req.body;
 
@@ -121,10 +122,68 @@ export const crearUsuario = async (req, res) => {
       Nombre_Usuario: nombre,
       Contraseña: hash,
       ID_Rol: idRol,
+=======
+  try {
+    console.log('📥 Datos recibidos del frontend:', req.body);
+
+    let {
+      nombre,
+      contrasena,
+      idRol,
+      email,
+      tipoDocumento = null,
+      numeroDocumento = null,
+      celular = null,
+    } = req.body;
+
+    // Validación básica
+    if (!nombre || !contrasena || !idRol || !email) {
+      return res.status(400).json({
+        mensaje: 'Faltan datos obligatorios (nombre, contrasena, idRol, email).',
+      });
+    }
+
+    // Normaliza
+    nombre = String(nombre).trim();
+    email = String(email).trim();
+    const rolNum = Number.parseInt(idRol, 10);
+    if (!Number.isInteger(rolNum) || rolNum <= 0) {
+      return res.status(400).json({ mensaje: 'idRol inválido (entero > 0).' });
+    }
+
+    // Duplicados
+    if (numeroDocumento) {
+      const [dupDoc] = await db.query(
+        'SELECT 1 FROM Usuarios WHERE Numero_Documento = ? LIMIT 1',
+        [String(numeroDocumento).trim()]
+      );
+      if (dupDoc.length > 0) {
+        return res.status(409).json({ mensaje: 'El número de documento ya existe.' });
+      }
+    }
+
+    const [dupEmail] = await db.query(
+      'SELECT 1 FROM Usuarios WHERE Email = ? LIMIT 1',
+      [email]
+    );
+    if (dupEmail.length > 0) {
+      return res.status(409).json({ mensaje: 'Este correo ya está registrado.' });
+    }
+
+    // Hash
+    const hash = await bcrypt.hash(contrasena, 10);
+
+    // Insert (coincide con tu modelo/tabla)
+    const id = await Usuario.crear({
+      Nombre_Usuario: nombre,
+      Contrasena: hash,          // OJO: sin tilde
+      ID_Rol: rolNum,
+>>>>>>> 63a8aa6 (Inicialización del repositorio backend: estructura Node/Express, controladores y conexión MySQL)
       Email: email,
       Tipo_Documento: tipoDocumento || null,
       Numero_Documento: numeroDocumento || null,
       Celular: celular || null,
+<<<<<<< HEAD
       Estado: ESTADO,
       Activo: activo
     });
@@ -136,6 +195,24 @@ export const crearUsuario = async (req, res) => {
     }
     console.error('❌ Error al crear el usuario:', error);
     res.status(500).json({ mensaje: 'Error al crear el usuario' });
+=======
+    });
+
+    return res.status(201).json({ mensaje: 'Usuario creado correctamente', id });
+  } catch (error) {
+    if (error?.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ mensaje: 'Valor duplicado (nombre, email o documento).' });
+    }
+    console.error('❌ Error al crear el usuario:', {
+      code: error?.code,
+      errno: error?.errno,
+      sqlState: error?.sqlState,
+      sqlMessage: error?.sqlMessage,
+      sql: error?.sql,
+      message: error?.message,
+    });
+    return res.status(500).json({ mensaje: 'Error al crear el usuario' });
+>>>>>>> 63a8aa6 (Inicialización del repositorio backend: estructura Node/Express, controladores y conexión MySQL)
   }
 };
 
