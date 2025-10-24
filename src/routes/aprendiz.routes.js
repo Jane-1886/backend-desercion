@@ -5,7 +5,7 @@ import {
   obtenerAprendizPorId,
   crearAprendiz,
   actualizarAprendiz,
-  eliminarAprendiz
+  eliminarAprendiz,
 } from '../controllers/aprendiz.controller.js';
 
 import verificarToken from '../middlewares/authMiddleware.js';
@@ -18,10 +18,10 @@ const router = express.Router();
  */
 
 // GET - Ver todos los aprendices
-router.get('/', verificarToken, autorizarRoles(3), obtenerAprendices);
+router.get('/', verificarToken, autorizarRoles(1,2,3), obtenerAprendices);
 
 // GET - Ver un aprendiz por ID
-router.get('/:id', verificarToken, autorizarRoles(3), obtenerAprendizPorId);
+router.get('/:id', verificarToken, autorizarRoles(1,2,3), obtenerAprendizPorId);
 
 // POST - Crear nuevo aprendiz
 router.post('/', verificarToken, autorizarRoles(3), crearAprendiz);

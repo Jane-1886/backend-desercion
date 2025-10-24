@@ -25,7 +25,7 @@ const router = Router();
 router.get("/", verificarToken, autorizarRoles(1, 2, 3), obtenerFichas);
 
 // GET - Fichas activas
-router.get("/activas", verificarToken, autorizarRoles(3), obtenerFichasActivas);
+router.get("/activas", verificarToken, autorizarRoles(1,3), obtenerFichasActivas);
 
 // GET - Fichas inactivas
 router.get("/inactivas", verificarToken, autorizarRoles(3), obtenerFichasInactivas);

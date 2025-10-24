@@ -1,23 +1,17 @@
 // src/middlewares/autorizarRol.js
-// Acepta uno o varios roles, p.ej. autorizarRoles(1, 2, 3)
-const autorizarRoles = (...rolesPermitidos) => {
-  const permitidos = rolesPermitidos.map(String); // normaliza a string
+// Uso: autorizarRoles(1,2,3) o autorizarRoles([1,2,3])
+const autorizarRoles = (...roles) => {
+  const permitidos = roles.flat().map(n => Number(n)).filter(n => Number.isFinite(n));
+
   return (req, res, next) => {
     if (!req.usuario) {
       return res.status(401).json({ mensaje: "No autenticado." });
     }
-    // Ajusta estos alias al campo real de tu payload de login:
-    const rol =
-      req.usuario.ID_Rol ??
-      req.usuario.idRol ??
-      req.usuario.rol ??
-      req.usuario.role ??
-      req.usuario.roleId;
-
-    if (rol == null) {
-      return res.status(403).json({ mensaje: "Acceso denegado: rol no presente en el token." });
+    const rol = Number(req.usuario.rol);
+    if (!Number.isFinite(rol)) {
+      return res.status(403).json({ mensaje: "Acceso denegado: rol no presente o inválido en el token." });
     }
-    if (!permitidos.includes(String(rol))) {
+    if (!permitidos.includes(rol)) {
       return res.status(403).json({ mensaje: "Acceso denegado: permisos insuficientes." });
     }
     next();

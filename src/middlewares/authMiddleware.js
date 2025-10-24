@@ -1,22 +1,27 @@
 // src/middlewares/authMiddleware.js
 import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
-dotenv.config();
+const SECRET = process.env.JWT_SECRET || "mi_clave_secreta";
 
 const verificarToken = (req, res, next) => {
-  if (req.method === "OPTIONS") return next(); // deja pasar preflight CORS
+  if (req.method === "OPTIONS") return next();
 
-  const auth = req.headers.authorization || req.header("Authorization") || "";
-  if (!auth) return res.status(401).json({ mensaje: "Acceso denegado. Falta Authorization." });
-
-  const token = auth.startsWith("Bearer ") ? auth.slice(7).trim() : auth.trim();
+  const raw = req.headers.authorization || req.header("Authorization") || "";
+  const token = raw.startsWith("Bearer ") ? raw.slice(7).trim() : raw.trim();
   if (!token) return res.status(401).json({ mensaje: "Acceso denegado. Token vacío." });
 
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
-    req.usuario = payload; // queda disponible para el siguiente middleware/controlador
+    const p = jwt.verify(token, SECRET);
+    req.usuario = {
+      id: Number(p.id),
+      rol: Number(p.rol),
+      nombre: p.nombre ?? null,
+      email: p.email ?? null,
+    };
+    if (!Number.isFinite(req.usuario.id) || !Number.isFinite(req.usuario.rol)) {
+      return res.status(401).json({ mensaje: "Token inválido: id/rol no numéricos." });
+    }
     next();
-  } catch (e) {
+  } catch {
     return res.status(401).json({ mensaje: "Token inválido o expirado." });
   }
 };

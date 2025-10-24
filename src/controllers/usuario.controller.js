@@ -36,6 +36,7 @@ export const obtenerUsuarios = async (_req, res) => {
         CASE WHEN u.Estado = 'ACTIVO' THEN 1 ELSE 0 END AS activo
       FROM Usuarios u
       JOIN Roles r ON u.ID_Rol = r.ID_Rol
+      ORDER BY u.ID_Usuario DESC
     `);
     res.json(rows);
   } catch (error) {
@@ -48,10 +49,9 @@ export const obtenerUsuarios = async (_req, res) => {
 export const obtenerUsuarioPorId = async (req, res) => {
   const { id } = req.params;
   try {
-    const usuario = await Usuario.obtenerPorId(id); // si tu modelo ya hace el join/alias, perfecto
+    const usuario = await Usuario.obtenerPorId(id);
     if (usuario) return res.json(usuario);
 
-    // Fallback directo
     const [rows] = await db.query(`
       SELECT 
         u.ID_Usuario        AS id,
@@ -71,7 +71,7 @@ export const obtenerUsuarioPorId = async (req, res) => {
   }
 };
 
-// OBTENER por EMAIL (lo necesita tu front)
+// OBTENER por EMAIL
 export const obtenerUsuarioPorEmail = async (req, res) => {
   const { email } = req.params;
   try {
@@ -98,112 +98,53 @@ export const obtenerUsuarioPorEmail = async (req, res) => {
 
 // CREAR
 export const crearUsuario = async (req, res) => {
-<<<<<<< HEAD
-  console.log('📥 Datos recibidos del frontend:', req.body);
-  const { nombre, contrasena, idRol, email, tipoDocumento, numeroDocumento, celular, estado = 'ACTIVO' } = req.body;
-
-  if (!nombre || !contrasena || !idRol || !email) {
-    return res.status(400).json({ mensaje: 'Faltan datos obligatorios (nombre, contrasena, idRol, email).' });
-  }
-
   try {
-    // Validaciones simples (email/documento únicos)
-    const [dupDoc] = await db.query('SELECT 1 FROM Usuarios WHERE Numero_Documento = ? AND ? IS NOT NULL', [numeroDocumento, numeroDocumento]);
-    if (dupDoc.length > 0) return res.status(409).json({ mensaje: 'El número de documento ya existe.' });
+    console.log('📥 Body recibido:', req.body);
 
-    const [dupEmail] = await db.query('SELECT 1 FROM Usuarios WHERE Email = ?', [email]);
-    if (dupEmail.length > 0) return res.status(409).json({ mensaje: 'Este correo ya está registrado.' });
+    // Normalización segura
+    const body = req.body || {};
+    const nombre  = (body.nombre ?? '').toString().trim();
+    const email   = (body.email ?? '').toString().trim();
+    const pass    = (body.contrasena ?? '').toString(); // sin ñ
+    const idRol   = Number.parseInt(body.idRol, 10);
 
-    const hash = await bcrypt.hash(contrasena, 10);
-    const ESTADO = normEstado(estado);
-    const activo = ESTADO === 'ACTIVO' ? 1 : 0;
+    const tipoDocumento   = body.tipoDocumento ? String(body.tipoDocumento).trim() : null;
+    const numeroDocumento = body.numeroDocumento ? String(body.numeroDocumento).replace(/\D+/g, '') : null;
+    const celular         = body.celular ? String(body.celular).replace(/\D+/g, '') : null;
 
-    const id = await Usuario.crear({
-      Nombre_Usuario: nombre,
-      Contraseña: hash,
-      ID_Rol: idRol,
-=======
-  try {
-    console.log('📥 Datos recibidos del frontend:', req.body);
-
-    let {
-      nombre,
-      contrasena,
-      idRol,
-      email,
-      tipoDocumento = null,
-      numeroDocumento = null,
-      celular = null,
-    } = req.body;
-
-    // Validación básica
-    if (!nombre || !contrasena || !idRol || !email) {
-      return res.status(400).json({
-        mensaje: 'Faltan datos obligatorios (nombre, contrasena, idRol, email).',
-      });
-    }
-
-    // Normaliza
-    nombre = String(nombre).trim();
-    email = String(email).trim();
-    const rolNum = Number.parseInt(idRol, 10);
-    if (!Number.isInteger(rolNum) || rolNum <= 0) {
-      return res.status(400).json({ mensaje: 'idRol inválido (entero > 0).' });
+    if (!nombre || !email || !pass || !Number.isInteger(idRol) || idRol <= 0) {
+      return res.status(400).json({ mensaje: 'Faltan datos válidos (nombre, contrasena, idRol, email).' });
     }
 
     // Duplicados
     if (numeroDocumento) {
-      const [dupDoc] = await db.query(
-        'SELECT 1 FROM Usuarios WHERE Numero_Documento = ? LIMIT 1',
-        [String(numeroDocumento).trim()]
-      );
-      if (dupDoc.length > 0) {
-        return res.status(409).json({ mensaje: 'El número de documento ya existe.' });
-      }
+      const [dupDoc] = await db.query('SELECT 1 FROM Usuarios WHERE Numero_Documento = ? LIMIT 1', [numeroDocumento]);
+      if (dupDoc.length > 0) return res.status(409).json({ mensaje: 'El número de documento ya existe.' });
     }
-
-    const [dupEmail] = await db.query(
-      'SELECT 1 FROM Usuarios WHERE Email = ? LIMIT 1',
-      [email]
-    );
-    if (dupEmail.length > 0) {
-      return res.status(409).json({ mensaje: 'Este correo ya está registrado.' });
-    }
+    const [dupEmail] = await db.query('SELECT 1 FROM Usuarios WHERE Email = ? LIMIT 1', [email]);
+    if (dupEmail.length > 0) return res.status(409).json({ mensaje: 'Este correo ya está registrado.' });
 
     // Hash
-    const hash = await bcrypt.hash(contrasena, 10);
+    const hash = await bcrypt.hash(pass, 10);
 
     // Insert (coincide con tu modelo/tabla)
-    const id = await Usuario.crear({
+    const insertId = await Usuario.crear({
       Nombre_Usuario: nombre,
-      Contrasena: hash,          // OJO: sin tilde
-      ID_Rol: rolNum,
->>>>>>> 63a8aa6 (Inicialización del repositorio backend: estructura Node/Express, controladores y conexión MySQL)
+      Contrasena: hash, // OJO: sin tilde
+      ID_Rol: idRol,
       Email: email,
-      Tipo_Documento: tipoDocumento || null,
-      Numero_Documento: numeroDocumento || null,
-      Celular: celular || null,
-<<<<<<< HEAD
-      Estado: ESTADO,
-      Activo: activo
+      Tipo_Documento: tipoDocumento,
+      Numero_Documento: numeroDocumento,
+      Celular: celular,
+      // Estado/Activo quedan a los defaults de la BD
     });
 
-    res.status(201).json({ mensaje: 'Usuario creado correctamente', id });
-  } catch (error) {
-    if (error?.code === 'ER_DUP_ENTRY') {
-      return res.status(409).json({ mensaje: 'Este correo ya está registrado' });
-    }
-    console.error('❌ Error al crear el usuario:', error);
-    res.status(500).json({ mensaje: 'Error al crear el usuario' });
-=======
-    });
-
-    return res.status(201).json({ mensaje: 'Usuario creado correctamente', id });
+    return res.status(201).json({ mensaje: 'Usuario creado correctamente', id: insertId });
   } catch (error) {
     if (error?.code === 'ER_DUP_ENTRY') {
       return res.status(409).json({ mensaje: 'Valor duplicado (nombre, email o documento).' });
     }
-    console.error('❌ Error al crear el usuario:', {
+    console.error('❌ crearUsuario error:', {
       code: error?.code,
       errno: error?.errno,
       sqlState: error?.sqlState,
@@ -212,7 +153,6 @@ export const crearUsuario = async (req, res) => {
       message: error?.message,
     });
     return res.status(500).json({ mensaje: 'Error al crear el usuario' });
->>>>>>> 63a8aa6 (Inicialización del repositorio backend: estructura Node/Express, controladores y conexión MySQL)
   }
 };
 
@@ -227,9 +167,9 @@ export const actualizarUsuario = async (req, res) => {
     if (nombre !== undefined) payload.Nombre_Usuario = nombre;
     if (email !== undefined)  payload.Email = email;
     if (idRol !== undefined)  payload.ID_Rol = idRol;
-    if (tipoDocumento !== undefined) payload.Tipo_Documento = tipoDocumento || null;
+    if (tipoDocumento !== undefined)   payload.Tipo_Documento = tipoDocumento || null;
     if (numeroDocumento !== undefined) payload.Numero_Documento = numeroDocumento || null;
-    if (celular !== undefined) payload.Celular = celular || null;
+    if (celular !== undefined)         payload.Celular = celular || null;
 
     if (estado !== undefined) {
       const ESTADO = normEstado(estado);
@@ -238,10 +178,9 @@ export const actualizarUsuario = async (req, res) => {
     }
 
     if (contrasena !== undefined && String(contrasena).length > 0) {
-      payload.Contraseña = await bcrypt.hash(contrasena, 10);
+      payload.Contrasena = await bcrypt.hash(contrasena, 10); // sin tilde
     }
 
-    // Si no hay nada que actualizar:
     if (Object.keys(payload).length === 0) {
       return res.status(400).json({ mensaje: 'No hay campos para actualizar.' });
     }
@@ -282,7 +221,7 @@ export const cambiarEstadoUsuario = async (req, res) => {
   const activo = ESTADO === 'ACTIVO' ? 1 : 0;
 
   try {
-    // Actualiza estado/activo (si no tienes columna Activo, este update igual funcionará; si falla por columna inexistente, ejecutamos fallback)
+    // Actualiza estado/activo (si no tienes columna Activo, fallback)
     let r1;
     try {
       [r1] = await db.query(
@@ -291,7 +230,6 @@ export const cambiarEstadoUsuario = async (req, res) => {
       );
     } catch (e) {
       if (e?.code === 'ER_BAD_FIELD_ERROR') {
-        // Fallback si no existe columna Activo
         [r1] = await db.query(
           `UPDATE Usuarios SET Estado = ? WHERE ID_Usuario = ?`,
           [ESTADO, id]
@@ -319,7 +257,9 @@ export const cambiarEstadoUsuario = async (req, res) => {
   }
 };
 
-// CARGAR INSTRUCTOR rápido (ID_Rol = 2)
+// CARGAR INSTRUCTOR rápido (ID_Rol = 1 por tu convención actual)
+const INSTRUCTOR_ROLE_ID = 1;
+
 export const cargarInstructor = async (req, res) => {
   const { nombre, email, contrasena } = req.body;
 
@@ -336,9 +276,9 @@ export const cargarInstructor = async (req, res) => {
     const hashedPassword = await bcrypt.hash(contrasena, 10);
 
     await db.query(
-      `INSERT INTO Usuarios (Nombre_Usuario, Email, Contraseña, ID_Rol, Estado, Activo)
-       VALUES (?, ?, ?, 2, 'ACTIVO', 1)`,
-      [nombre.trim(), email.trim(), hashedPassword]
+      `INSERT INTO Usuarios (Nombre_Usuario, Email, Contrasena, ID_Rol, Estado, Activo)
+       VALUES (?, ?, ?, ?, 'ACTIVO', 1)`,
+      [nombre.trim(), email.trim(), hashedPassword, INSTRUCTOR_ROLE_ID]
     );
 
     res.status(201).json({ mensaje: 'Instructor registrado correctamente' });
@@ -364,8 +304,9 @@ export const loginUsuario = async (req, res) => {
     }
     const usuario = resultado[0];
 
-    const contraseñaValida = await bcrypt.compare(contrasena, usuario.Contraseña);
-    if (!contraseñaValida) {
+    // Comparar contra columna correcta: Contrasena (sin tilde)
+    const passwordOK = await bcrypt.compare(contrasena, usuario.Contrasena);
+    if (!passwordOK) {
       return res.status(401).json({ mensaje: 'Credenciales inválidas (contraseña)' });
     }
 
@@ -389,7 +330,7 @@ export const loginUsuario = async (req, res) => {
       mensaje: 'Login exitoso',
       token,
       nombre: usuario.Nombre_Usuario,
-      idRol: usuario.ID_Rol, // 👈 corregido
+      idRol: usuario.ID_Rol,
     });
   } catch (error) {
     console.error('❌ Error en login:', error);
@@ -397,10 +338,7 @@ export const loginUsuario = async (req, res) => {
   }
 };
 
-// 👇 Configura aquí el ID de rol para INSTRUCTOR
-const INSTRUCTOR_ROLE_ID = 1;
-
-/** GET /api/usuarios/instructores?estado=ACTIVO|INACTIVO (opcional) */
+// Listar Instructores (filtros por estado opcionales)
 export const listarInstructores = async (req, res) => {
   try {
     const estado = (req.query.estado || '').toString().toUpperCase();
@@ -446,5 +384,3 @@ export const listarInstructoresActivos = async (req, res) => {
   req.query.estado = 'ACTIVO';
   return listarInstructores(req, res);
 };
-
-
